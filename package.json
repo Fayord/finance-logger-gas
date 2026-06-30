@@ -1,0 +1,27 @@
+{
+  "name": "finance-logger-gas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile-first Google Sheets + Google Apps Script finance logger for expenses, income, and transfers.",
+  "type": "commonjs",
+  "scripts": {
+    "gas:login": "clasp login",
+    "gas:open": "clasp open-script",
+    "gas:pull": "clasp pull",
+    "gas:push": "clasp push",
+    "gas:push:force": "clasp push --force",
+    "gas:watch": "clasp push --watch",
+    "gas:versions": "clasp versions",
+    "gas:version": "clasp version",
+    "lint": "eslint src",
+    "format": "prettier --write .",
+    "check": "npm run lint"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.0.6",
+    "@types/google-apps-script": "^2.0.11",
+    "eslint": "^9.29.0",
+    "globals": "^16.2.0",
+    "prettier": "^3.6.2"
+  }
+}
