@@ -118,6 +118,10 @@ The selected workbook design is Approach 1:
 - Replaced the temporary JSON-control page with a mobile-first Quick Log interface in Apps Script HTML service.
 - Added Expense / Income / Transfer switching with dynamic fields.
 - Added preset chips, recent logs, edit mode, soft delete confirmation, and reload controls.
+- Added a `Real` / `Mock` mode switch:
+  - real mode writes to `Transactions`
+  - mock mode writes only to `Mock_Transactions`
+  - mock mode lets create/edit/delete be tested before real accounts and presets are configured
 - Kept workbook setup/mock/diagnostic controls in a secondary `Workbook tools` panel.
 - Added `PRODUCT.md` so future UI work has a stable product-register design context.
 
@@ -128,19 +132,16 @@ The selected workbook design is Approach 1:
 
 ## Current Git State
 
-At the time this overview was created:
+Current working convention:
 
 - Local branch: `main`
-- Local branch is ahead of `origin/main` by 2 commits.
-- Latest local commits:
-  - `7c2daea Add safe workbook setup`
-  - `3a1aab6 Add mock seeder adapter tests`
-- Latest remote commit:
-  - `fda1cd7 Add mock workbook seeder`
+- The local branch may be ahead of `origin/main` after each completed feature unit.
+- Use `git status --short --branch` to confirm whether GitHub has the latest local commits.
+- Commit after each complete verified unit.
 
 Action needed eventually:
 
-- Push Git when ready so GitHub also has the latest setup and test commits.
+- Push Git when ready so GitHub also has the latest verified local commits.
 
 ## What Needs To Happen Next
 
@@ -193,7 +194,7 @@ Local tests cover:
 
 ### Phase 3: Quick Log UI In Apps Script
 
-Status: first functional UI implemented.
+Status: first functional UI implemented with real and mock modes.
 
 Implemented UI:
 
@@ -206,10 +207,13 @@ Implemented UI:
 - recent 10-20 logs
 - edit recent log
 - delete recent log with confirmation
+- real/mock mode switch
+- mock-mode create/edit/delete against `Mock_Transactions`
 
 Remaining Phase 3 polish:
 
 - Browser-test the Apps Script `/dev` deployment on mobile and desktop widths.
+- Seed mock workbook, switch the UI to `Mock`, then test create/edit/delete without touching real tabs.
 - Improve empty states once real accounts/presets are configured.
 - Tighten account/category picker ergonomics after real config is available.
 - Add clearer loading skeletons if the GAS calls feel slow.
@@ -245,6 +249,7 @@ There is no hard engineering blocker right now.
 The main product dependency is review/approval:
 
 - Confirm the mock workbook shape is complete enough.
+- Confirm the mock Quick Log mode behaves correctly in the Apps Script web app.
 - Confirm the real workbook tabs created by `setupWorkbook()` look acceptable.
 - Confirm that Approach 1 remains the chosen data model.
 
@@ -299,13 +304,17 @@ If you want to review the current safe workbook pieces:
 3. Click `Seed mock workbook`.
 4. Review only the `Mock_...` tabs in the Google Sheet.
 5. Click `Check mock workbook`.
-6. Click `Setup real workbook` only when you are comfortable creating the real empty app tabs.
-7. Click `Check real workbook`.
+6. Switch the Quick Log page to `Mock`.
+7. Create a sample expense, income, and transfer.
+8. Edit one mock recent log.
+9. Delete one mock recent log and confirm it is soft-deleted.
+10. Click `Setup real workbook` only when you are comfortable creating the real empty app tabs.
+11. Click `Check real workbook`.
 
-The mock seeder should never modify non-mock tabs.
+The mock seeder and mock Quick Log mode should never modify non-mock tabs.
 
 ## Recommended Next Action
 
-Continue with Phase 3: mobile Quick Log UI in Apps Script.
+Browser-test the Apps Script `/dev` deployment.
 
-This is the best next step because the backend now has the create, edit, delete, bootstrap, and recent-log functions the first real UI needs.
+This is the best next step because the full Quick Log path can now be tested safely in `Mock` mode before you provide real accounts, presets, and settings.

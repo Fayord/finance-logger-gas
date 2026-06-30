@@ -180,6 +180,7 @@ vm.runInContext(fs.readFileSync("src/MockWorkbook.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/Connection.gs", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/WorkbookSetupPlan.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/WorkbookSetup.gs", "utf8"), context);
+vm.runInContext(fs.readFileSync("src/MockSeeder.gs", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/QuickLogModel.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/QuickLog.gs", "utf8"), context);
 
@@ -191,6 +192,14 @@ function createSetupWorkbook() {
   const spreadsheet = new FakeSpreadsheet();
   context.getFinanceSpreadsheet_ = () => spreadsheet;
   context.setupWorkbook();
+  context.flushCount = 0;
+  return spreadsheet;
+}
+
+function createSeededMockWorkbook() {
+  const spreadsheet = new FakeSpreadsheet();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+  context.seedMockWorkbook();
   context.flushCount = 0;
   return spreadsheet;
 }
@@ -597,4 +606,83 @@ test("getRecentTransactions hides soft-deleted rows", () => {
   assert.equal(result.ok, true);
   assert.equal(result.transactions.length, 1);
   assert.equal(result.transactions[0]["Transaction ID"], "EXP-ACTIVE");
+});
+
+test("getMockQuickLogBootstrap reads seeded mock workbook data", () => {
+  const spreadsheet = createSeededMockWorkbook();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.getMockQuickLogBootstrap();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "mock");
+  assert.equal(result.accounts.some((account) => account["Account ID"] === "cash-wallet"), true);
+  assert.equal(result.recentTransactions.length > 0, true);
+});
+
+test("createMockTransaction appends only to Mock_Transactions", () => {
+  const spreadsheet = createSetupWorkbook();
+  context.seedMockWorkbook();
+  context.flushCount = 0;
+  const realTransactions = spreadsheet.getSheetByName("Transactions");
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+  const originalMockRows = mockTransactions.values.length;
+
+  const result = context.createMockTransaction({
+    Type: "Expense",
+    Date: "2026-06-30",
+    Amount: 85,
+    "Tier 1": "Food & Dining",
+    "Tier 2": "Sweet Drinks & Snacks",
+    Account: "cash-wallet",
+    Memo: "Mock mode backend test"
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "mock");
+  assert.equal(context.flushCount, 1);
+  assert.equal(realTransactions.values.length, 1);
+  assert.equal(mockTransactions.values.length, originalMockRows + 1);
+  assert.equal(mockTransactions.values.at(-1)[14], "Mock mode backend test");
+});
+
+test("updateMockTransaction and softDeleteMockTransaction leave real rows untouched", () => {
+  const spreadsheet = createSetupWorkbook();
+  seedTransaction(spreadsheet);
+  context.seedMockWorkbook();
+  context.flushCount = 0;
+  const realTransactions = spreadsheet.getSheetByName("Transactions");
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+  const mockId = mockTransactions.values[1][0];
+
+  const update = context.updateMockTransaction(mockId, {
+    Amount: 222,
+    Memo: "Edited mock transaction"
+  });
+  const remove = context.softDeleteMockTransaction(mockId);
+
+  assert.equal(update.ok, true);
+  assert.equal(remove.ok, true);
+  assert.equal(realTransactions.values.length, 2);
+  assert.equal(realTransactions.values[1][0], "EXP-ACTIVE");
+  assert.equal(realTransactions.values[1][14], "Original memo");
+  assert.equal(mockTransactions.values[1][5], 222);
+  assert.equal(mockTransactions.values[1][14], "Edited mock transaction");
+  assert.equal(mockTransactions.values[1][16], true);
+});
+
+test("getRecentMockTransactions hides deleted mock rows", () => {
+  const spreadsheet = createSeededMockWorkbook();
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+  const mockId = mockTransactions.values[1][0];
+  context.softDeleteMockTransaction(mockId);
+
+  const result = context.getRecentMockTransactions(20);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "mock");
+  assert.equal(
+    result.transactions.some((transaction) => transaction["Transaction ID"] === mockId),
+    false
+  );
 });

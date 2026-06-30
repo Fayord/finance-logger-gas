@@ -2,6 +2,14 @@
  * Quick Log backend functions for Apps Script HTML service calls.
  */
 function getQuickLogBootstrap() {
+  return getQuickLogBootstrapForSheets_(FINANCE_SHEETS, "real");
+}
+
+function getMockQuickLogBootstrap() {
+  return getQuickLogBootstrapForSheets_(MOCK_FINANCE_SHEETS, "mock");
+}
+
+function getQuickLogBootstrapForSheets_(sheetNames, mode) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
 
@@ -9,12 +17,13 @@ function getQuickLogBootstrap() {
       return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
     }
 
-    ensureQuickLogSheets_(spreadsheet);
+    ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
-    var workbookData = readQuickLogWorkbookData_(spreadsheet);
+    var workbookData = readQuickLogWorkbookData_(spreadsheet, sheetNames);
     var bootstrap = buildQuickLogBootstrapData(workbookData);
 
     bootstrap.checkedAt = new Date().toISOString();
+    bootstrap.mode = mode;
     bootstrap.spreadsheet = getSpreadsheetSummary_(spreadsheet);
 
     return bootstrap;
@@ -24,6 +33,14 @@ function getQuickLogBootstrap() {
 }
 
 function createTransaction(input) {
+  return createTransactionForSheets_(input, FINANCE_SHEETS, "real");
+}
+
+function createMockTransaction(input) {
+  return createTransactionForSheets_(input, MOCK_FINANCE_SHEETS, "mock");
+}
+
+function createTransactionForSheets_(input, sheetNames, mode) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
 
@@ -31,9 +48,9 @@ function createTransaction(input) {
       return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
     }
 
-    ensureQuickLogSheets_(spreadsheet);
+    ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
-    var transactionsSheet = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var transactionsSheet = spreadsheet.getSheetByName(sheetNames.TRANSACTIONS);
     var existingTransactions = readSheetObjects_(transactionsSheet, TRANSACTION_HEADERS);
     var result = createQuickLogTransaction(input || {}, existingTransactions, {
       now: new Date().toISOString(),
@@ -60,8 +77,9 @@ function createTransaction(input) {
       ok: true,
       message: "Transaction created.",
       createdAt: result.transaction["Created At"],
+      mode: mode,
       transaction: result.transaction,
-      recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet))
+      recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
     };
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
@@ -69,6 +87,14 @@ function createTransaction(input) {
 }
 
 function updateTransaction(transactionId, input) {
+  return updateTransactionForSheets_(transactionId, input, FINANCE_SHEETS, "real");
+}
+
+function updateMockTransaction(transactionId, input) {
+  return updateTransactionForSheets_(transactionId, input, MOCK_FINANCE_SHEETS, "mock");
+}
+
+function updateTransactionForSheets_(transactionId, input, sheetNames, mode) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
 
@@ -76,9 +102,9 @@ function updateTransaction(transactionId, input) {
       return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
     }
 
-    ensureQuickLogSheets_(spreadsheet);
+    ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
-    var transactionsSheet = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var transactionsSheet = spreadsheet.getSheetByName(sheetNames.TRANSACTIONS);
     var existingRows = readSheetObjectsWithRowNumbers_(transactionsSheet, TRANSACTION_HEADERS);
     var existingTransactions = existingRows.map(function (row) {
       return row.record;
@@ -106,10 +132,11 @@ function updateTransaction(transactionId, input) {
       ok: true,
       message: "Transaction updated.",
       updatedAt: result.transaction["Updated At"],
+      mode: mode,
       transaction: result.transaction,
       recentTransactions: getRecentTransactionRecords(
         replaceTransactionRecord_(existingTransactions, result.transaction),
-        getRecentLogLimit_(spreadsheet)
+        getRecentLogLimit_(spreadsheet, sheetNames)
       )
     };
   } catch (error) {
@@ -118,6 +145,14 @@ function updateTransaction(transactionId, input) {
 }
 
 function softDeleteTransaction(transactionId) {
+  return softDeleteTransactionForSheets_(transactionId, FINANCE_SHEETS, "real");
+}
+
+function softDeleteMockTransaction(transactionId) {
+  return softDeleteTransactionForSheets_(transactionId, MOCK_FINANCE_SHEETS, "mock");
+}
+
+function softDeleteTransactionForSheets_(transactionId, sheetNames, mode) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
 
@@ -125,9 +160,9 @@ function softDeleteTransaction(transactionId) {
       return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
     }
 
-    ensureQuickLogSheets_(spreadsheet);
+    ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
-    var transactionsSheet = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var transactionsSheet = spreadsheet.getSheetByName(sheetNames.TRANSACTIONS);
     var existingRows = readSheetObjectsWithRowNumbers_(transactionsSheet, TRANSACTION_HEADERS);
     var existingTransactions = existingRows.map(function (row) {
       return row.record;
@@ -155,10 +190,11 @@ function softDeleteTransaction(transactionId) {
       ok: true,
       message: "Transaction deleted.",
       deletedAt: result.transaction["Deleted At"],
+      mode: mode,
       transaction: result.transaction,
       recentTransactions: getRecentTransactionRecords(
         replaceTransactionRecord_(existingTransactions, result.transaction),
-        getRecentLogLimit_(spreadsheet)
+        getRecentLogLimit_(spreadsheet, sheetNames)
       )
     };
   } catch (error) {
@@ -167,6 +203,14 @@ function softDeleteTransaction(transactionId) {
 }
 
 function getRecentTransactions(limit) {
+  return getRecentTransactionsForSheets_(limit, FINANCE_SHEETS, "real");
+}
+
+function getRecentMockTransactions(limit) {
+  return getRecentTransactionsForSheets_(limit, MOCK_FINANCE_SHEETS, "mock");
+}
+
+function getRecentTransactionsForSheets_(limit, sheetNames, mode) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
 
@@ -174,41 +218,42 @@ function getRecentTransactions(limit) {
       return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
     }
 
-    ensureQuickLogSheets_(spreadsheet);
+    ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
     var transactions = readSheetObjects_(
-      spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS),
+      spreadsheet.getSheetByName(sheetNames.TRANSACTIONS),
       TRANSACTION_HEADERS
     );
 
     return {
       ok: true,
       checkedAt: new Date().toISOString(),
-      transactions: getRecentTransactionRecords(transactions, limit || getRecentLogLimit_(spreadsheet))
+      mode: mode,
+      transactions: getRecentTransactionRecords(transactions, limit || getRecentLogLimit_(spreadsheet, sheetNames))
     };
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
 }
 
-function readQuickLogWorkbookData_(spreadsheet) {
+function readQuickLogWorkbookData_(spreadsheet, sheetNames) {
   return {
-    transactions: readSheetObjects_(spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS), TRANSACTION_HEADERS),
-    accounts: readSheetObjects_(spreadsheet.getSheetByName(FINANCE_SHEETS.ACCOUNTS), ACCOUNT_HEADERS),
+    transactions: readSheetObjects_(spreadsheet.getSheetByName(sheetNames.TRANSACTIONS), TRANSACTION_HEADERS),
+    accounts: readSheetObjects_(spreadsheet.getSheetByName(sheetNames.ACCOUNTS), ACCOUNT_HEADERS),
     expenseCategories: readSheetObjects_(
-      spreadsheet.getSheetByName(FINANCE_SHEETS.EXPENSE_CATEGORIES),
+      spreadsheet.getSheetByName(sheetNames.EXPENSE_CATEGORIES),
       CATEGORY_HEADERS
     ),
     incomeCategories: readSheetObjects_(
-      spreadsheet.getSheetByName(FINANCE_SHEETS.INCOME_CATEGORIES),
+      spreadsheet.getSheetByName(sheetNames.INCOME_CATEGORIES),
       INCOME_CATEGORY_HEADERS
     ),
     transferCategories: readSheetObjects_(
-      spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSFER_CATEGORIES),
+      spreadsheet.getSheetByName(sheetNames.TRANSFER_CATEGORIES),
       TRANSFER_CATEGORY_HEADERS
     ),
-    presets: readSheetObjects_(spreadsheet.getSheetByName(FINANCE_SHEETS.PRESETS), PRESET_HEADERS),
-    settings: readSheetObjects_(spreadsheet.getSheetByName(FINANCE_SHEETS.SETTINGS), SETTING_HEADERS)
+    presets: readSheetObjects_(spreadsheet.getSheetByName(sheetNames.PRESETS), PRESET_HEADERS),
+    settings: readSheetObjects_(spreadsheet.getSheetByName(sheetNames.SETTINGS), SETTING_HEADERS)
   };
 }
 
@@ -245,26 +290,33 @@ function readSheetObjectsWithRowNumbers_(sheet, headers) {
     });
 }
 
-function ensureQuickLogSheets_(spreadsheet) {
+function ensureQuickLogSheets_(spreadsheet, sheetNames, mode) {
   var missingSheets = [
-    FINANCE_SHEETS.TRANSACTIONS,
-    FINANCE_SHEETS.ACCOUNTS,
-    FINANCE_SHEETS.EXPENSE_CATEGORIES,
-    FINANCE_SHEETS.INCOME_CATEGORIES,
-    FINANCE_SHEETS.TRANSFER_CATEGORIES,
-    FINANCE_SHEETS.PRESETS,
-    FINANCE_SHEETS.SETTINGS
+    sheetNames.TRANSACTIONS,
+    sheetNames.ACCOUNTS,
+    sheetNames.EXPENSE_CATEGORIES,
+    sheetNames.INCOME_CATEGORIES,
+    sheetNames.TRANSFER_CATEGORIES,
+    sheetNames.PRESETS,
+    sheetNames.SETTINGS
   ].filter(function (sheetName) {
     return !spreadsheet.getSheetByName(sheetName);
   });
 
   if (missingSheets.length > 0) {
-    throw new Error("Missing required Quick Log sheets. Run setupWorkbook() first: " + missingSheets.join(", "));
+    throw new Error(
+      "Missing required " +
+        mode +
+        " Quick Log sheets. Run " +
+        (mode === "mock" ? "seedMockWorkbook()" : "setupWorkbook()") +
+        " first: " +
+        missingSheets.join(", ")
+    );
   }
 }
 
-function getRecentLogLimit_(spreadsheet) {
-  var settings = readSheetObjects_(spreadsheet.getSheetByName(FINANCE_SHEETS.SETTINGS), SETTING_HEADERS);
+function getRecentLogLimit_(spreadsheet, sheetNames) {
+  var settings = readSheetObjects_(spreadsheet.getSheetByName(sheetNames.SETTINGS), SETTING_HEADERS);
   return Number(getSettingValue_(settings, "recentLogLimit", 20));
 }
 

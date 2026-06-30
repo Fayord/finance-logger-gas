@@ -145,6 +145,42 @@
         white-space: nowrap;
       }
 
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .mode-switcher {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2px;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+      }
+
+      .mode-button {
+        min-height: 30px;
+        border-radius: 999px;
+        padding: 0 9px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .mode-button.is-active {
+        background: var(--transfer-soft);
+        color: var(--transfer);
+      }
+
+      .mode-button[data-mode="mock"].is-active {
+        background: var(--edit-soft);
+        color: oklch(0.38 0.09 72);
+      }
+
       .panel {
         background: var(--surface);
         border: 1px solid var(--line);
@@ -520,7 +556,13 @@
             <h1>Quick Log</h1>
             <p class="subtitle" id="sheetName">Loading workbook...</p>
           </div>
-          <button class="sync-pill" type="button" id="refreshButton">Refresh</button>
+          <div class="topbar-actions">
+            <div class="mode-switcher" role="tablist" aria-label="Workbook mode">
+              <button class="mode-button is-active" type="button" data-mode="real" role="tab" aria-selected="true">Real</button>
+              <button class="mode-button" type="button" data-mode="mock" role="tab" aria-selected="false">Mock</button>
+            </div>
+            <button class="sync-pill" type="button" id="refreshButton">Refresh</button>
+          </div>
         </div>
       </header>
 
@@ -646,6 +688,7 @@
             <button class="secondary-button" type="button" data-admin-action="setupWorkbook">Setup real workbook</button>
             <button class="secondary-button" type="button" data-admin-action="getWorkbookSetupStatus">Check real workbook</button>
             <button class="secondary-button" type="button" data-admin-action="getQuickLogBootstrap">Check quick log</button>
+            <button class="secondary-button" type="button" data-admin-action="getMockQuickLogBootstrap">Check mock quick log</button>
             <button class="secondary-button" type="button" data-admin-action="seedMockWorkbook">Seed mock workbook</button>
             <button class="secondary-button" type="button" data-admin-action="getMockWorkbookStatus">Check mock workbook</button>
           </div>
@@ -656,6 +699,7 @@
 
     <script>
       const state = {
+        mode: "real",
         type: "Expense",
         bootstrap: null,
         recentTransactions: [],
@@ -663,10 +707,30 @@
         submitting: false
       };
 
+      const modeActions = {
+        real: {
+          label: "Real workbook",
+          bootstrap: "getQuickLogBootstrap",
+          recent: "getRecentTransactions",
+          create: "createTransaction",
+          update: "updateTransaction",
+          remove: "softDeleteTransaction"
+        },
+        mock: {
+          label: "Mock workbook",
+          bootstrap: "getMockQuickLogBootstrap",
+          recent: "getRecentMockTransactions",
+          create: "createMockTransaction",
+          update: "updateMockTransaction",
+          remove: "softDeleteMockTransaction"
+        }
+      };
+
       const els = {
         sheetName: document.getElementById("sheetName"),
         refreshButton: document.getElementById("refreshButton"),
         recentRefreshButton: document.getElementById("recentRefreshButton"),
+        modeButtons: Array.from(document.querySelectorAll(".mode-button")),
         tabs: Array.from(document.querySelectorAll(".type-tab")),
         form: document.getElementById("transactionForm"),
         formMode: document.getElementById("formMode"),
@@ -714,6 +778,25 @@
       function setStatus(message, kind = "") {
         els.status.textContent = message;
         els.status.className = `status ${kind}`.trim();
+      }
+
+      function getModeActions() {
+        return modeActions[state.mode];
+      }
+
+      function setMode(mode, shouldLoad = false) {
+        state.mode = mode;
+        state.editId = null;
+        els.modeButtons.forEach((button) => {
+          const isActive = button.dataset.mode === mode;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-selected", String(isActive));
+        });
+        setStatus(`${getModeActions().label} selected.`);
+
+        if (shouldLoad) {
+          loadBootstrap();
+        }
       }
 
       function setType(type) {
@@ -916,16 +999,16 @@
       }
 
       async function loadBootstrap() {
-        setStatus("Loading Quick Log data...");
+        setStatus(`Loading ${getModeActions().label.toLowerCase()} data...`);
         try {
-          const result = await gasCall("getQuickLogBootstrap");
+          const result = await gasCall(getModeActions().bootstrap);
           if (!result.ok) {
             throw new Error(result.message || "Quick Log bootstrap failed.");
           }
 
           state.bootstrap = result;
           state.recentTransactions = result.recentTransactions || [];
-          els.sheetName.textContent = result.spreadsheet?.name || "Connected";
+          els.sheetName.textContent = `${getModeActions().label}: ${result.spreadsheet?.name || "Connected"}`;
           renderReferenceData();
           renderPresets();
           renderRecent();
@@ -939,7 +1022,7 @@
       async function reloadRecent() {
         setStatus("Reloading recent logs...");
         try {
-          const result = await gasCall("getRecentTransactions", 20);
+          const result = await gasCall(getModeActions().recent, 20);
           if (!result.ok) {
             throw new Error(result.message || "Could not reload recent logs.");
           }
@@ -964,8 +1047,8 @@
         try {
           const payload = buildPayload();
           const result = state.editId
-            ? await gasCall("updateTransaction", state.editId, payload)
-            : await gasCall("createTransaction", payload);
+            ? await gasCall(getModeActions().update, state.editId, payload)
+            : await gasCall(getModeActions().create, payload);
 
           if (!result.ok) {
             throw new Error((result.errors || [result.message || "Transaction failed."]).join(" "));
@@ -984,14 +1067,16 @@
       }
 
       async function deleteTransaction(transactionId) {
-        const ok = window.confirm("Delete this recent log? The row will be soft-deleted in Google Sheets.");
+        const ok = window.confirm(
+          `Delete this recent log from the ${getModeActions().label.toLowerCase()}? The row will be soft-deleted.`
+        );
         if (!ok) {
           return;
         }
 
         setStatus("Deleting transaction...");
         try {
-          const result = await gasCall("softDeleteTransaction", transactionId);
+          const result = await gasCall(getModeActions().remove, transactionId);
           if (!result.ok) {
             throw new Error((result.errors || [result.message || "Delete failed."]).join(" "));
           }
@@ -1005,6 +1090,12 @@
           setStatus(error.message || String(error), "error");
         }
       }
+
+      els.modeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setMode(button.dataset.mode, true);
+        });
+      });
 
       els.tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -1059,7 +1150,10 @@
           try {
             const result = await gasCall(action);
             els.adminOutput.textContent = JSON.stringify(result, null, 2);
-            if (action === "setupWorkbook") {
+            if (
+              (action === "setupWorkbook" && state.mode === "real") ||
+              (action === "seedMockWorkbook" && state.mode === "mock")
+            ) {
               loadBootstrap();
             }
           } catch (error) {
@@ -1076,6 +1170,7 @@
       });
 
       els.date.value = today();
+      setMode("real");
       setType("Expense");
       loadBootstrap();
     </script>
