@@ -14,8 +14,9 @@
     "gas:versions": "clasp versions",
     "gas:version": "clasp version",
     "lint": "eslint src",
+    "test": "node --test test/*.test.mjs",
     "format": "prettier --write .",
-    "check": "npm run lint"
+    "check": "npm run lint && npm test"
   },
   "devDependencies": {
     "@google/clasp": "^3.0.6",

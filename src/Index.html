@@ -10,6 +10,39 @@
     <main>
       <h1>Finance Logger</h1>
       <p>Quick Log UI scaffold. Migrate the polished prototype from docs/prototypes/quick-log-mockup.html here when implementation begins.</p>
+
+      <section>
+        <h2>Google Sheet Connection</h2>
+        <button type="button" id="connection-check-button">Check connection</button>
+        <pre id="connection-result">Not checked yet.</pre>
+      </section>
     </main>
+
+    <script>
+      const button = document.getElementById("connection-check-button");
+      const result = document.getElementById("connection-result");
+
+      function renderConnectionStatus(status) {
+        result.textContent = JSON.stringify(status, null, 2);
+      }
+
+      button.addEventListener("click", () => {
+        result.textContent = "Checking...";
+
+        google.script.run
+          .withSuccessHandler(renderConnectionStatus)
+          .withFailureHandler((error) => {
+            result.textContent = JSON.stringify(
+              {
+                ok: false,
+                message: error && error.message ? error.message : String(error)
+              },
+              null,
+              2
+            );
+          })
+          .getConnectionStatus();
+      });
+    </script>
   </body>
 </html>

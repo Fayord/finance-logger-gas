@@ -117,6 +117,10 @@ Transfer optional fields:
 ## Recommended Google Sheets Tabs
 
 - `Transactions`
+- `Expenses_View`
+- `Income_View`
+- `Transfers_View`
+- `Balances`
 - `Expense_Categories`
 - `Income_Categories`
 - `Transfer_Categories`
@@ -125,6 +129,13 @@ Transfer optional fields:
 - `Settings`
 
 Use the sheet structure from `docs/specs/personal-finance-logging-web-app.md` unless the user explicitly changes it.
+
+Transaction storage approach:
+
+- Use one master `Transactions` sheet as the source of truth.
+- `Expenses_View`, `Income_View`, and `Transfers_View` are generated formula/filter views only.
+- Do not write independent transaction rows into type-specific sheets.
+- Do not add an `All_Transactions` sheet unless the user changes the storage approach.
 
 ## Category Rules
 
@@ -229,11 +240,21 @@ Never commit:
 Expected checks and sync commands are:
 
 - `npm run lint`
+- `npm test`
 - `npm run check`
 - `npm run gas:pull` before local work when remote Apps Script may have changed
 - `npm run gas:push` after local Apps Script changes are verified
 
 If Apps Script browser-editor changes happen, pull them back locally immediately and commit them.
+
+Use pure helpers in `src/` plus mock workbook fixtures under `test/` for local verification. Keep SpreadsheetApp access behind thin adapters so business logic can be tested before pushing to the real Apps Script project.
+
+Connection smoke test:
+
+- `src/Connection.gs` exposes `getConnectionStatus()`.
+- The first deployed GAS test should be read-only.
+- Prefer a bound Apps Script project so `SpreadsheetApp.getActiveSpreadsheet()` works without storing a Sheet ID.
+- If the project is standalone, use Script Property `FINANCE_LOGGER_SHEET_ID`; do not commit the real Sheet ID.
 
 ## Source Of Truth
 

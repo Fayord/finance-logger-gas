@@ -1,0 +1,75 @@
+{
+  "sheets": {
+    "Accounts": [
+      {
+        "Account ID": "cash",
+        "Display Name": "Cash",
+        "Full Name": "Cash Wallet",
+        "Account Type": "Cash",
+        "Opening Balance": 1000,
+        "Favorite?": true,
+        "Active?": true
+      },
+      {
+        "Account ID": "kbank",
+        "Display Name": "KBank",
+        "Full Name": "Kasikorn Main Account",
+        "Account Type": "Bank",
+        "Opening Balance": 10000,
+        "Favorite?": true,
+        "Active?": true
+      }
+    ],
+    "Transactions": [
+      {
+        "Transaction ID": "EXP-001",
+        "Date": "2026-06-30",
+        "Created At": "2026-06-30T09:00:00.000Z",
+        "Updated At": "2026-06-30T09:00:00.000Z",
+        "Type": "Expense",
+        "Amount": 85,
+        "Tier 1": "Food & Dining",
+        "Tier 2": "Sweet Drinks & Snacks",
+        "Account": "cash",
+        "Memo": "Milk tea",
+        "Deleted?": false
+      },
+      {
+        "Transaction ID": "INC-001",
+        "Date": "2026-06-30",
+        "Created At": "2026-06-30T10:00:00.000Z",
+        "Updated At": "2026-06-30T10:00:00.000Z",
+        "Type": "Income",
+        "Amount": 5000,
+        "Tier 1": "Salary",
+        "Account": "kbank",
+        "Taxable?": "Check",
+        "Deleted?": false
+      },
+      {
+        "Transaction ID": "TRF-001",
+        "Date": "2026-06-30",
+        "Created At": "2026-06-30T11:00:00.000Z",
+        "Updated At": "2026-06-30T11:00:00.000Z",
+        "Type": "Transfer",
+        "Amount": 1000,
+        "Tier 1": "Cash Withdraw",
+        "From Account": "kbank",
+        "To Account": "cash",
+        "Deleted?": false
+      }
+    ],
+    "Settings": [
+      {
+        "Key": "timezone",
+        "Value": "Asia/Bangkok",
+        "Notes": "Display and default date timezone"
+      },
+      {
+        "Key": "recentLogLimit",
+        "Value": "20",
+        "Notes": "Number of recent transactions shown in the app"
+      }
+    ]
+  }
+}

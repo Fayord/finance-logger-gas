@@ -39,4 +39,22 @@ npm ci
 npm run check
 ```
 
+`npm run check` runs ESLint and local Node tests against mock workbook data, so core transaction logic can be verified before pushing to the real Apps Script project.
+
 Create a real `.clasp.json` locally from `.clasp.example.json` after you have an Apps Script project ID. Do not commit the real `.clasp.json` unless the project owner explicitly chooses that workflow.
+
+## First GAS Connection Test
+
+The scaffold includes a read-only `getConnectionStatus()` smoke test. After pushing to a bound Apps Script project, open the web app and click `Check connection` to verify:
+
+- the app can read the bound Google Sheet
+- the expected tabs exist
+- which tabs are missing before full implementation begins
+
+If the Apps Script project is bound to the Google Sheet, no Sheet URL is needed in code. If the Apps Script project is standalone, add this Script Property in Apps Script project settings:
+
+```text
+FINANCE_LOGGER_SHEET_ID=<your Google Sheet ID>
+```
+
+The real `.clasp.json` is local-only and ignored by Git.
