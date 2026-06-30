@@ -5,56 +5,1079 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Finance Logger</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: oklch(0.975 0.011 255);
+        --surface: oklch(1 0 0);
+        --surface-soft: oklch(0.989 0.006 255);
+        --ink: oklch(0.21 0.024 260);
+        --muted: oklch(0.43 0.024 260);
+        --subtle: oklch(0.62 0.024 260);
+        --line: oklch(0.91 0.013 255);
+        --focus: oklch(0.58 0.16 252);
+        --expense: oklch(0.56 0.21 28);
+        --expense-soft: oklch(0.96 0.032 28);
+        --income: oklch(0.56 0.16 148);
+        --income-soft: oklch(0.96 0.04 148);
+        --transfer: oklch(0.55 0.18 255);
+        --transfer-soft: oklch(0.96 0.035 255);
+        --edit: oklch(0.67 0.16 75);
+        --edit-soft: oklch(0.97 0.045 82);
+        --danger: oklch(0.58 0.21 28);
+        --danger-soft: oklch(0.97 0.035 28);
+        --radius: 12px;
+        --shadow: 0 8px 18px oklch(0.21 0.024 260 / 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 16px;
+        padding: 10px 11px;
+      }
+
+      textarea {
+        min-height: 76px;
+        resize: vertical;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :focus-visible {
+        outline: 3px solid oklch(0.58 0.16 252 / 0.28);
+        outline-offset: 2px;
+      }
+
+      .shell {
+        width: min(100%, 620px);
+        margin: 0 auto;
+        padding: 14px;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        margin: -14px -14px 12px;
+        padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+        background: oklch(0.975 0.011 255 / 0.94);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(12px);
+      }
+
+      .topbar-inner {
+        width: min(100%, 620px);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 22px;
+        line-height: 1.1;
+      }
+
+      h2 {
+        font-size: 16px;
+        line-height: 1.25;
+      }
+
+      .subtitle {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .sync-pill {
+        min-height: 34px;
+        border-radius: 999px;
+        padding: 0 11px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .section {
+        padding: 14px;
+      }
+
+      .section + .section {
+        border-top: 1px solid var(--line);
+      }
+
+      .type-switcher {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px;
+        background: var(--surface-soft);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .type-tab {
+        min-height: 50px;
+        border-radius: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .type-tab.is-active[data-type="Expense"] {
+        color: var(--expense);
+        background: var(--expense-soft);
+        border-color: oklch(0.72 0.14 28);
+      }
+
+      .type-tab.is-active[data-type="Income"] {
+        color: var(--income);
+        background: var(--income-soft);
+        border-color: oklch(0.72 0.12 148);
+      }
+
+      .type-tab.is-active[data-type="Transfer"] {
+        color: var(--transfer);
+        background: var(--transfer-soft);
+        border-color: oklch(0.72 0.12 255);
+      }
+
+      .edit-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--edit-soft);
+        border-bottom: 1px solid oklch(0.82 0.1 80);
+        color: oklch(0.38 0.09 72);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .edit-banner.is-visible {
+        display: flex;
+      }
+
+      .link-button {
+        min-height: 34px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .type-only {
+        display: none;
+      }
+
+      .type-only.is-visible {
+        display: grid;
+      }
+
+      .presets {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+
+      .presets::-webkit-scrollbar {
+        display: none;
+      }
+
+      .preset-chip {
+        flex: 0 0 auto;
+        min-height: 38px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface-soft);
+        color: var(--ink);
+        padding: 0 12px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .empty-line {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .primary-button {
+        min-height: 50px;
+        border-radius: 10px;
+        background: var(--expense);
+        color: white;
+        font-weight: 900;
+      }
+
+      .primary-button[data-type="Income"] {
+        background: var(--income);
+      }
+
+      .primary-button[data-type="Transfer"] {
+        background: var(--transfer);
+      }
+
+      .primary-button:disabled {
+        cursor: wait;
+        opacity: 0.72;
+      }
+
+      .secondary-button {
+        min-height: 50px;
+        border-radius: 10px;
+        padding: 0 14px;
+        background: var(--surface-soft);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-weight: 850;
+      }
+
+      .status {
+        min-height: 20px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .status.success {
+        color: var(--income);
+      }
+
+      .recent-header,
+      .admin-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .recent-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .recent-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface-soft);
+      }
+
+      .recent-main {
+        min-width: 0;
+      }
+
+      .recent-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .recent-title span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .badge {
+        flex: 0 0 auto;
+        border-radius: 999px;
+        padding: 3px 7px;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .badge.Expense {
+        color: var(--expense);
+        background: var(--expense-soft);
+      }
+
+      .badge.Income {
+        color: var(--income);
+        background: var(--income-soft);
+      }
+
+      .badge.Transfer {
+        color: var(--transfer);
+        background: var(--transfer-soft);
+      }
+
+      .recent-meta {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .recent-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .small-button {
+        min-height: 34px;
+        border-radius: 9px;
+        padding: 0 9px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .small-button.danger {
+        color: var(--danger);
+        background: var(--danger-soft);
+        border-color: oklch(0.84 0.08 28);
+      }
+
+      details.admin {
+        margin-top: 12px;
+      }
+
+      details.admin summary {
+        list-style: none;
+        cursor: pointer;
+      }
+
+      details.admin summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .admin-output {
+        max-height: 220px;
+        overflow: auto;
+        margin: 10px 0 0;
+        padding: 10px;
+        border-radius: 10px;
+        background: oklch(0.21 0.024 260);
+        color: oklch(0.96 0.01 255);
+        font-size: 12px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      @media (max-width: 460px) {
+        .shell {
+          padding: 10px;
+          padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        }
+
+        .topbar {
+          margin: -10px -10px 10px;
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+
+        .field-grid,
+        .actions,
+        .admin-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .recent-item {
+          grid-template-columns: 1fr;
+        }
+
+        .recent-actions {
+          justify-content: flex-end;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        button,
+        input,
+        select,
+        textarea {
+          transition:
+            border-color 160ms ease-out,
+            background-color 160ms ease-out,
+            color 160ms ease-out,
+            opacity 160ms ease-out;
+        }
+      }
+    </style>
   </head>
   <body>
-    <main>
-      <h1>Finance Logger</h1>
-      <p>Quick Log UI scaffold. Migrate the polished prototype from docs/prototypes/quick-log-mockup.html here when implementation begins.</p>
+    <main class="shell">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <div>
+            <h1>Quick Log</h1>
+            <p class="subtitle" id="sheetName">Loading workbook...</p>
+          </div>
+          <button class="sync-pill" type="button" id="refreshButton">Refresh</button>
+        </div>
+      </header>
 
-      <section>
-        <h2>Google Sheet Connection</h2>
-        <button type="button" data-action="getConnectionStatus">Check connection</button>
-        <button type="button" data-action="setupWorkbook">Setup real workbook</button>
-        <button type="button" data-action="getWorkbookSetupStatus">Check real workbook</button>
-        <button type="button" data-action="getQuickLogBootstrap">Check quick log bootstrap</button>
-        <button type="button" data-action="seedMockWorkbook">Seed mock workbook</button>
-        <button type="button" data-action="getMockWorkbookStatus">Check mock workbook</button>
-        <pre id="result">Not checked yet.</pre>
+      <section class="panel" aria-labelledby="quickLogTitle">
+        <div class="type-switcher" role="tablist" aria-label="Transaction type">
+          <button class="type-tab is-active" type="button" data-type="Expense" role="tab">Expense</button>
+          <button class="type-tab" type="button" data-type="Income" role="tab">Income</button>
+          <button class="type-tab" type="button" data-type="Transfer" role="tab">Transfer</button>
+        </div>
+
+        <div class="edit-banner" id="editBanner">
+          <span id="editLabel">Editing transaction</span>
+          <button class="link-button" type="button" id="cancelEditButton">Cancel</button>
+        </div>
+
+        <form class="section form-grid" id="transactionForm">
+          <div class="recent-header">
+            <h2 id="quickLogTitle">New transaction</h2>
+            <span class="status" id="formMode">Expense</span>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="dateInput">Date</label>
+              <input id="dateInput" name="Date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="amountInput">Amount</label>
+              <input id="amountInput" name="Amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required>
+            </div>
+
+            <div class="field type-only is-visible" data-visible-for="Expense">
+              <label for="expenseTier1Input">Tier 1</label>
+              <input id="expenseTier1Input" list="expenseTier1List" autocomplete="off">
+            </div>
+            <div class="field type-only is-visible" data-visible-for="Expense">
+              <label for="expenseTier2Input">Tier 2</label>
+              <input id="expenseTier2Input" list="expenseTier2List" autocomplete="off">
+            </div>
+
+            <div class="field type-only" data-visible-for="Income">
+              <label for="incomeCategoryInput">Income category</label>
+              <input id="incomeCategoryInput" list="incomeCategoryList" autocomplete="off">
+            </div>
+            <div class="field type-only" data-visible-for="Income">
+              <label for="taxableInput">Taxable?</label>
+              <select id="taxableInput">
+                <option value="Check">Check</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="field type-only" data-visible-for="Transfer">
+              <label for="transferCategoryInput">Transfer category</label>
+              <input id="transferCategoryInput" list="transferCategoryList" autocomplete="off">
+            </div>
+            <div class="field type-only" data-visible-for="Transfer">
+              <label for="fromAccountInput">From account</label>
+              <input id="fromAccountInput" list="accountList" autocomplete="off">
+            </div>
+
+            <div class="field type-only is-visible" data-visible-for="Expense Income">
+              <label for="accountInput">Account</label>
+              <input id="accountInput" list="accountList" autocomplete="off">
+            </div>
+            <div class="field type-only" data-visible-for="Transfer">
+              <label for="toAccountInput">To account</label>
+              <input id="toAccountInput" list="accountList" autocomplete="off">
+            </div>
+
+            <div class="field type-only is-visible" data-visible-for="Expense">
+              <label for="deductionInput">Tax deduction status</label>
+              <select id="deductionInput">
+                <option value="No">No</option>
+                <option value="Check">Check</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="memoInput">Memo</label>
+              <textarea id="memoInput" placeholder="Optional note"></textarea>
+            </div>
+          </div>
+
+          <datalist id="expenseTier1List"></datalist>
+          <datalist id="expenseTier2List"></datalist>
+          <datalist id="incomeCategoryList"></datalist>
+          <datalist id="transferCategoryList"></datalist>
+          <datalist id="accountList"></datalist>
+
+          <div class="actions">
+            <button class="primary-button" type="submit" id="submitButton" data-type="Expense">Log expense</button>
+            <button class="secondary-button" type="button" id="resetButton">Reset</button>
+          </div>
+          <p class="status" id="statusText" role="status">Loading Quick Log data...</p>
+        </form>
+
+        <div class="section">
+          <div class="recent-header">
+            <h2>Presets</h2>
+          </div>
+          <div class="presets" id="presetList"></div>
+        </div>
       </section>
+
+      <section class="section panel" aria-labelledby="recentTitle" style="margin-top: 12px;">
+        <div class="recent-header">
+          <h2 id="recentTitle">Recent logs</h2>
+          <button class="link-button" type="button" id="recentRefreshButton">Reload</button>
+        </div>
+        <div class="recent-list" id="recentList"></div>
+      </section>
+
+      <details class="admin panel">
+        <summary class="section admin-summary">
+          <h2>Workbook tools</h2>
+          <span class="link-button">Open</span>
+        </summary>
+        <div class="section">
+          <div class="admin-grid">
+            <button class="secondary-button" type="button" data-admin-action="getConnectionStatus">Check connection</button>
+            <button class="secondary-button" type="button" data-admin-action="setupWorkbook">Setup real workbook</button>
+            <button class="secondary-button" type="button" data-admin-action="getWorkbookSetupStatus">Check real workbook</button>
+            <button class="secondary-button" type="button" data-admin-action="getQuickLogBootstrap">Check quick log</button>
+            <button class="secondary-button" type="button" data-admin-action="seedMockWorkbook">Seed mock workbook</button>
+            <button class="secondary-button" type="button" data-admin-action="getMockWorkbookStatus">Check mock workbook</button>
+          </div>
+          <pre class="admin-output" id="adminOutput">No workbook tool run yet.</pre>
+        </div>
+      </details>
     </main>
 
     <script>
-      const buttons = document.querySelectorAll("[data-action]");
-      const result = document.getElementById("result");
+      const state = {
+        type: "Expense",
+        bootstrap: null,
+        recentTransactions: [],
+        editId: null,
+        submitting: false
+      };
 
-      function renderStatus(status) {
-        result.textContent = JSON.stringify(status, null, 2);
-      }
+      const els = {
+        sheetName: document.getElementById("sheetName"),
+        refreshButton: document.getElementById("refreshButton"),
+        recentRefreshButton: document.getElementById("recentRefreshButton"),
+        tabs: Array.from(document.querySelectorAll(".type-tab")),
+        form: document.getElementById("transactionForm"),
+        formMode: document.getElementById("formMode"),
+        editBanner: document.getElementById("editBanner"),
+        editLabel: document.getElementById("editLabel"),
+        cancelEditButton: document.getElementById("cancelEditButton"),
+        date: document.getElementById("dateInput"),
+        amount: document.getElementById("amountInput"),
+        expenseTier1: document.getElementById("expenseTier1Input"),
+        expenseTier2: document.getElementById("expenseTier2Input"),
+        incomeCategory: document.getElementById("incomeCategoryInput"),
+        transferCategory: document.getElementById("transferCategoryInput"),
+        account: document.getElementById("accountInput"),
+        fromAccount: document.getElementById("fromAccountInput"),
+        toAccount: document.getElementById("toAccountInput"),
+        taxable: document.getElementById("taxableInput"),
+        deduction: document.getElementById("deductionInput"),
+        memo: document.getElementById("memoInput"),
+        submitButton: document.getElementById("submitButton"),
+        resetButton: document.getElementById("resetButton"),
+        status: document.getElementById("statusText"),
+        presetList: document.getElementById("presetList"),
+        recentList: document.getElementById("recentList"),
+        adminOutput: document.getElementById("adminOutput")
+      };
 
-      buttons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const action = button.dataset.action;
-
-          result.textContent =
-            action === "seedMockWorkbook" || action === "setupWorkbook"
-              ? "Working..."
-              : "Checking...";
+      function gasCall(action, ...args) {
+        return new Promise((resolve, reject) => {
+          if (!window.google || !google.script || !google.script.run) {
+            reject(new Error("google.script.run is available only inside the Apps Script web app."));
+            return;
+          }
 
           google.script.run
-            .withSuccessHandler(renderStatus)
-            .withFailureHandler((error) => {
-              result.textContent = JSON.stringify(
-                {
-                  ok: false,
-                  message: error && error.message ? error.message : String(error)
-                },
-                null,
-                2
-              );
-            })
-            [action]();
+            .withSuccessHandler(resolve)
+            .withFailureHandler((error) => reject(error))
+            [action](...args);
+        });
+      }
+
+      function today() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function setStatus(message, kind = "") {
+        els.status.textContent = message;
+        els.status.className = `status ${kind}`.trim();
+      }
+
+      function setType(type) {
+        state.type = type;
+        els.tabs.forEach((tab) => {
+          tab.classList.toggle("is-active", tab.dataset.type === type);
+          tab.setAttribute("aria-selected", String(tab.dataset.type === type));
+        });
+        document.querySelectorAll(".type-only").forEach((field) => {
+          field.classList.toggle("is-visible", field.dataset.visibleFor.split(" ").includes(type));
+        });
+        els.formMode.textContent = state.editId ? `Editing ${type}` : type;
+        els.submitButton.dataset.type = type;
+        els.submitButton.textContent = state.editId ? "Save changes" : `Log ${type.toLowerCase()}`;
+      }
+
+      function rowValue(row, key) {
+        return row && row[key] !== undefined ? row[key] : "";
+      }
+
+      function unique(values) {
+        return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
+      }
+
+      function fillDatalist(id, values) {
+        document.getElementById(id).innerHTML = unique(values)
+          .map((value) => `<option value="${escapeHtml(value)}"></option>`)
+          .join("");
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function accountOptions() {
+        return (state.bootstrap?.accounts || []).map((account) => rowValue(account, "Account ID"));
+      }
+
+      function renderReferenceData() {
+        const expenseCategories = state.bootstrap?.expenseCategories || [];
+        fillDatalist(
+          "expenseTier1List",
+          expenseCategories.map((row) => rowValue(row, "Tier 1"))
+        );
+        fillDatalist(
+          "expenseTier2List",
+          expenseCategories.map((row) => rowValue(row, "Tier 2"))
+        );
+        fillDatalist(
+          "incomeCategoryList",
+          (state.bootstrap?.incomeCategories || []).map((row) => rowValue(row, "Category"))
+        );
+        fillDatalist(
+          "transferCategoryList",
+          (state.bootstrap?.transferCategories || []).map((row) => rowValue(row, "Category"))
+        );
+        fillDatalist("accountList", accountOptions());
+      }
+
+      function renderPresets() {
+        const presets = state.bootstrap?.presets || [];
+        const activePresets = presets.filter((preset) => rowValue(preset, "Type") === state.type);
+
+        if (activePresets.length === 0) {
+          els.presetList.innerHTML = '<p class="empty-line">No active presets for this type yet.</p>';
+          return;
+        }
+
+        els.presetList.innerHTML = activePresets
+          .map(
+            (preset) =>
+              `<button class="preset-chip" type="button" data-preset-id="${escapeHtml(
+                rowValue(preset, "Preset ID")
+              )}">${escapeHtml(rowValue(preset, "Preset Name"))}</button>`
+          )
+          .join("");
+      }
+
+      function renderRecent() {
+        if (!state.recentTransactions.length) {
+          els.recentList.innerHTML = '<p class="empty-line">No recent logs yet.</p>';
+          return;
+        }
+
+        els.recentList.innerHTML = state.recentTransactions
+          .map((transaction) => {
+            const type = rowValue(transaction, "Type");
+            const label = rowValue(transaction, "Memo") || rowValue(transaction, "Tier 2") || rowValue(transaction, "Tier 1");
+            const amount = Number(rowValue(transaction, "Amount") || 0).toLocaleString(undefined, {
+              maximumFractionDigits: 2
+            });
+            const account =
+              type === "Transfer"
+                ? `${rowValue(transaction, "From Account")} to ${rowValue(transaction, "To Account")}`
+                : rowValue(transaction, "Account");
+
+            return `
+              <article class="recent-item">
+                <div class="recent-main">
+                  <div class="recent-title">
+                    <span class="badge ${escapeHtml(type)}">${escapeHtml(type)}</span>
+                    <span>${escapeHtml(label || "Untitled transaction")}</span>
+                  </div>
+                  <div class="recent-meta">${escapeHtml(rowValue(transaction, "Date"))} - ${escapeHtml(
+                    amount
+                  )} - ${escapeHtml(account)}</div>
+                </div>
+                <div class="recent-actions">
+                  <button class="small-button" type="button" data-edit-id="${escapeHtml(
+                    rowValue(transaction, "Transaction ID")
+                  )}">Edit</button>
+                  <button class="small-button danger" type="button" data-delete-id="${escapeHtml(
+                    rowValue(transaction, "Transaction ID")
+                  )}">Delete</button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function clearForm() {
+        state.editId = null;
+        els.form.reset();
+        els.date.value = today();
+        els.taxable.value = "Check";
+        els.deduction.value = "No";
+        els.editBanner.classList.remove("is-visible");
+        setType(state.type);
+        setStatus("Ready.");
+      }
+
+      function applyPreset(preset) {
+        setType(rowValue(preset, "Type") || state.type);
+        els.amount.value = rowValue(preset, "Amount");
+        els.expenseTier1.value = rowValue(preset, "Tier 1");
+        els.expenseTier2.value = rowValue(preset, "Tier 2");
+        els.incomeCategory.value = rowValue(preset, "Income Category") || rowValue(preset, "Tier 1");
+        els.transferCategory.value = rowValue(preset, "Transfer Category") || rowValue(preset, "Tier 1");
+        els.account.value = rowValue(preset, "Account");
+        els.fromAccount.value = rowValue(preset, "From Account");
+        els.toAccount.value = rowValue(preset, "To Account");
+        els.taxable.value = rowValue(preset, "Taxable?") || "Check";
+        els.deduction.value = rowValue(preset, "Tax Deduction Status") || "No";
+        els.memo.value = rowValue(preset, "Memo");
+      }
+
+      function fillForm(transaction) {
+        state.editId = rowValue(transaction, "Transaction ID");
+        setType(rowValue(transaction, "Type") || "Expense");
+        els.date.value = rowValue(transaction, "Date") || today();
+        els.amount.value = rowValue(transaction, "Amount");
+        els.expenseTier1.value = rowValue(transaction, "Tier 1");
+        els.expenseTier2.value = rowValue(transaction, "Tier 2");
+        els.incomeCategory.value = rowValue(transaction, "Tier 1");
+        els.transferCategory.value = rowValue(transaction, "Tier 1");
+        els.account.value = rowValue(transaction, "Account");
+        els.fromAccount.value = rowValue(transaction, "From Account");
+        els.toAccount.value = rowValue(transaction, "To Account");
+        els.taxable.value = rowValue(transaction, "Taxable?") || "Check";
+        els.deduction.value = rowValue(transaction, "Tax Deduction Status") || "No";
+        els.memo.value = rowValue(transaction, "Memo");
+        els.editLabel.textContent = `Editing ${state.editId}`;
+        els.editBanner.classList.add("is-visible");
+        setStatus("Editing recent transaction.");
+      }
+
+      function buildPayload() {
+        const payload = {
+          Type: state.type,
+          Date: els.date.value,
+          Amount: els.amount.value,
+          Memo: els.memo.value
+        };
+
+        if (state.type === "Expense") {
+          payload["Tier 1"] = els.expenseTier1.value;
+          payload["Tier 2"] = els.expenseTier2.value;
+          payload.Account = els.account.value;
+          payload["Tax Deduction Status"] = els.deduction.value;
+        }
+
+        if (state.type === "Income") {
+          payload["Tier 1"] = els.incomeCategory.value;
+          payload.Account = els.account.value;
+          payload["Taxable?"] = els.taxable.value;
+        }
+
+        if (state.type === "Transfer") {
+          payload["Tier 1"] = els.transferCategory.value;
+          payload["From Account"] = els.fromAccount.value;
+          payload["To Account"] = els.toAccount.value;
+        }
+
+        return payload;
+      }
+
+      async function loadBootstrap() {
+        setStatus("Loading Quick Log data...");
+        try {
+          const result = await gasCall("getQuickLogBootstrap");
+          if (!result.ok) {
+            throw new Error(result.message || "Quick Log bootstrap failed.");
+          }
+
+          state.bootstrap = result;
+          state.recentTransactions = result.recentTransactions || [];
+          els.sheetName.textContent = result.spreadsheet?.name || "Connected";
+          renderReferenceData();
+          renderPresets();
+          renderRecent();
+          clearForm();
+        } catch (error) {
+          els.sheetName.textContent = "Not connected";
+          setStatus(error.message || String(error), "error");
+        }
+      }
+
+      async function reloadRecent() {
+        setStatus("Reloading recent logs...");
+        try {
+          const result = await gasCall("getRecentTransactions", 20);
+          if (!result.ok) {
+            throw new Error(result.message || "Could not reload recent logs.");
+          }
+          state.recentTransactions = result.transactions || [];
+          renderRecent();
+          setStatus("Recent logs reloaded.", "success");
+        } catch (error) {
+          setStatus(error.message || String(error), "error");
+        }
+      }
+
+      async function submitForm(event) {
+        event.preventDefault();
+        if (state.submitting) {
+          return;
+        }
+
+        state.submitting = true;
+        els.submitButton.disabled = true;
+        setStatus(state.editId ? "Saving changes..." : "Logging transaction...");
+
+        try {
+          const payload = buildPayload();
+          const result = state.editId
+            ? await gasCall("updateTransaction", state.editId, payload)
+            : await gasCall("createTransaction", payload);
+
+          if (!result.ok) {
+            throw new Error((result.errors || [result.message || "Transaction failed."]).join(" "));
+          }
+
+          state.recentTransactions = result.recentTransactions || [];
+          renderRecent();
+          clearForm();
+          setStatus(result.message || "Saved.", "success");
+        } catch (error) {
+          setStatus(error.message || String(error), "error");
+        } finally {
+          state.submitting = false;
+          els.submitButton.disabled = false;
+        }
+      }
+
+      async function deleteTransaction(transactionId) {
+        const ok = window.confirm("Delete this recent log? The row will be soft-deleted in Google Sheets.");
+        if (!ok) {
+          return;
+        }
+
+        setStatus("Deleting transaction...");
+        try {
+          const result = await gasCall("softDeleteTransaction", transactionId);
+          if (!result.ok) {
+            throw new Error((result.errors || [result.message || "Delete failed."]).join(" "));
+          }
+          state.recentTransactions = result.recentTransactions || [];
+          renderRecent();
+          if (state.editId === transactionId) {
+            clearForm();
+          }
+          setStatus("Transaction deleted.", "success");
+        } catch (error) {
+          setStatus(error.message || String(error), "error");
+        }
+      }
+
+      els.tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          setType(tab.dataset.type);
+          renderPresets();
         });
       });
+
+      els.form.addEventListener("submit", submitForm);
+      els.resetButton.addEventListener("click", clearForm);
+      els.cancelEditButton.addEventListener("click", clearForm);
+      els.refreshButton.addEventListener("click", loadBootstrap);
+      els.recentRefreshButton.addEventListener("click", reloadRecent);
+
+      els.presetList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-preset-id]");
+        if (!button) {
+          return;
+        }
+        const preset = (state.bootstrap?.presets || []).find(
+          (item) => rowValue(item, "Preset ID") === button.dataset.presetId
+        );
+        if (preset) {
+          applyPreset(preset);
+          setStatus("Preset applied.");
+        }
+      });
+
+      els.recentList.addEventListener("click", (event) => {
+        const editButton = event.target.closest("[data-edit-id]");
+        const deleteButton = event.target.closest("[data-delete-id]");
+
+        if (editButton) {
+          const transaction = state.recentTransactions.find(
+            (item) => rowValue(item, "Transaction ID") === editButton.dataset.editId
+          );
+          if (transaction) {
+            fillForm(transaction);
+          }
+        }
+
+        if (deleteButton) {
+          deleteTransaction(deleteButton.dataset.deleteId);
+        }
+      });
+
+      document.querySelectorAll("[data-admin-action]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const action = button.dataset.adminAction;
+          els.adminOutput.textContent =
+            action === "seedMockWorkbook" || action === "setupWorkbook" ? "Working..." : "Checking...";
+          try {
+            const result = await gasCall(action);
+            els.adminOutput.textContent = JSON.stringify(result, null, 2);
+            if (action === "setupWorkbook") {
+              loadBootstrap();
+            }
+          } catch (error) {
+            els.adminOutput.textContent = JSON.stringify(
+              {
+                ok: false,
+                message: error.message || String(error)
+              },
+              null,
+              2
+            );
+          }
+        });
+      });
+
+      els.date.value = today();
+      setType("Expense");
+      loadBootstrap();
     </script>
   </body>
 </html>

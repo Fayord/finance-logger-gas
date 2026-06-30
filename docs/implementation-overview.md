@@ -113,6 +113,14 @@ The selected workbook design is Approach 1:
   - `Check quick log bootstrap`
 - Added local tests for Quick Log bootstrap, transaction create/edit/delete, validation, append/update behavior, and hidden soft-deleted rows.
 
+### Mobile Quick Log UI
+
+- Replaced the temporary JSON-control page with a mobile-first Quick Log interface in Apps Script HTML service.
+- Added Expense / Income / Transfer switching with dynamic fields.
+- Added preset chips, recent logs, edit mode, soft delete confirmation, and reload controls.
+- Kept workbook setup/mock/diagnostic controls in a secondary `Workbook tools` panel.
+- Added `PRODUCT.md` so future UI work has a stable product-register design context.
+
 ### Apps Script Sync
 
 - Source has been pushed to the configured Apps Script project with `npm run gas:push:force`.
@@ -185,9 +193,9 @@ Local tests cover:
 
 ### Phase 3: Quick Log UI In Apps Script
 
-Replace the temporary test/control page with the real mobile-first Quick Log app.
+Status: first functional UI implemented.
 
-Expected UI:
+Implemented UI:
 
 - Expense / Income / Transfer switcher
 - dynamic fields per type
@@ -199,7 +207,12 @@ Expected UI:
 - edit recent log
 - delete recent log with confirmation
 
-The existing standalone prototype is a reference, not the final production UI.
+Remaining Phase 3 polish:
+
+- Browser-test the Apps Script `/dev` deployment on mobile and desktop widths.
+- Improve empty states once real accounts/presets are configured.
+- Tighten account/category picker ergonomics after real config is available.
+- Add clearer loading skeletons if the GAS calls feel slow.
 
 ### Phase 4: Real Configuration
 
