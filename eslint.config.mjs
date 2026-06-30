@@ -38,10 +38,18 @@ export default [
         calculateBalances: "readonly",
         buildMockWorkbook: "readonly",
         getMockWorkbookSheetNames: "readonly",
+        MOCK_EXPENSE_CATEGORIES: "readonly",
+        getMockIncomeCategories_: "readonly",
+        getMockTransferCategories_: "readonly",
+        buildWorkbookSetupPlan: "readonly",
+        getWorkbookSetupSheetNames: "readonly",
         getConnectionStatus: "readonly",
         getFinanceSpreadsheet_: "readonly",
+        getExpectedSheetNames_: "readonly",
         seedMockWorkbook: "readonly",
-        getMockWorkbookStatus: "readonly"
+        getMockWorkbookStatus: "readonly",
+        setupWorkbook: "readonly",
+        getWorkbookSetupStatus: "readonly"
       }
     },
     rules: {
@@ -49,7 +57,7 @@ export default [
         "warn",
         {
           "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames)$"
+          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|setupWorkbook|getWorkbookSetupStatus|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames|buildWorkbookSetupPlan|getWorkbookSetupSheetNames)$"
         }
       ],
       "no-undef": "error"
