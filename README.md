@@ -17,7 +17,15 @@ src/
   Code.gs           Web app entry point and shared Apps Script helpers
   Index.html        HTML service entry page
 docs/
-  sheet-schema.md   Google Sheets tab and column schema
+  sheet-schema.md                         Google Sheets tab and column schema
+  specs/
+    personal-finance-logging-web-app.md   Main product specification
+  reference/
+    expense-categories-2-tier.md          Baseline expense category taxonomy
+    google-sheets-apps-script-clasp-stack.md
+                                           Local Apps Script + clasp workflow notes
+  prototypes/
+    quick-log-mockup.html                 Standalone Quick Log UI prototype
 .github/workflows/
   ci.yml            GitHub Actions lint check
 ```

@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Finance Logger - Quick Buttons Mockup</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #141827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --disabled: #f3f4f6;
+      --disabled-text: #9ca3af;
+
+      --expense: #dc2626;
+      --expense-soft: #fee2e2;
+      --expense-light: #fff7f7;
+
+      --income: #16a34a;
+      --income-soft: #dcfce7;
+      --income-light: #f4fff7;
+
+      --transfer: #2563eb;
+      --transfer-soft: #dbeafe;
+      --transfer-light: #f4f8ff;
+
+      --edit: #f59e0b;
+      --edit-soft: #fffbeb;
+
+      --danger: #ef4444;
+      --radius: 22px;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      --shadow-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 30%),
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 28%),
+        var(--bg);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    input,
+    textarea {
+      font-size: 16px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .shell {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: 14px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: -14px -14px 12px;
+      padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+      background: rgba(245, 247, 251, 0.90);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.88);
+    }
+
+    .topbar-inner {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+      color: var(--income);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.05;
+      letter-spacing: -0.045em;
+    }
+
+    .title-block p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .preset-open {
+      min-height: 44px;
+      border-radius: 999px;
+      background: #111827;
+      color: white;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 900;
+      white-space: nowrap;
+      box-shadow: 0 14px 35px rgba(17, 24, 39, 0.18);
+    }
+
+    .principle-note {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+      border-radius: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .principle-note strong {
+      color: var(--text);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .type-switcher {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfbfc;
+    }
+
+    .type-tab {
+      min-height: 54px;
+      border-radius: 17px;
+      background: white;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      color: var(--muted);
+      font-weight: 950;
+    }
+
+    .type-tab .icon {
+      display: block;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .type-tab .label {
+      font-size: 12px;
+    }
+
+    .type-tab.expense.active {
+      color: var(--expense);
+      background: var(--expense-light);
+      border-color: rgba(220, 38, 38, 0.36);
+      box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.10);
+    }
+
+    .type-tab.income.active {
+      color: var(--income);
+      background: var(--income-light);
+      border-color: rgba(22, 163, 74, 0.36);
+      box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.10);
+    }
+
+    .type-tab.transfer.active {
+      color: var(--transfer);
+      background: var(--transfer-light);
+      border-color: rgba(37, 99, 235, 0.36);
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.10);
+    }
+
+    .edit-banner {
+      display: none;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 11px;
+      border-radius: 17px;
+      border: 1px solid rgba(245, 158, 11, 0.36);
+      background: var(--edit-soft);
+    }
+
+    .edit-banner.show {
+      display: flex;
+    }
+
+    .edit-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.14);
+      flex: 0 0 auto;
+    }
+
+    .edit-text {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .edit-text strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .edit-text span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .cancel-edit {
+      min-height: 38px;
+      border-radius: 13px;
+      padding: 0 12px;
+      color: white;
+      background: #4b5563;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .slot {
+      display: grid;
+      gap: 8px;
+    }
+
+    .slot-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 10px;
+    }
+
+    .slot label {
+      color: #374151;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .slot-hint {
+      color: #9ca3af;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .amount-block {
+      padding: 14px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.98)),
+        var(--expense-light);
+      border: 1px solid var(--line);
+    }
+
+    .amount-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      margin-bottom: 8px;
+    }
+
+    .amount-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .currency {
+      color: var(--muted);
+      font-size: 28px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .amount-input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 44px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+      padding: 0;
+    }
+
+    .amount-input::placeholder {
+      color: #cbd5e1;
+    }
+
+    .input,
+    .textarea,
+    .picker-field,
+    .disabled-slot {
+      width: 100%;
+      min-height: 52px;
+      border-radius: 17px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      outline: 0;
+      padding: 12px 13px;
+      transition: 150ms ease;
+    }
+
+    .textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    .input:focus,
+    .textarea:focus {
+      border-color: #94a3b8;
+      box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.16);
+    }
+
+    .quick-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .category-grid.expense-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .category-grid.other-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .quick-btn {
+      min-height: 54px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: white;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.16;
+    }
+
+    .quick-btn .btn-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      font-size: 15px;
+    }
+
+    .quick-btn .btn-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .quick-btn.expense.active {
+      color: var(--expense);
+      background: var(--expense-light);
+      border-color: rgba(220, 38, 38, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.08);
+    }
+
+    .quick-btn.expense.active .btn-icon {
+      background: var(--expense-soft);
+    }
+
+    .quick-btn.income.active {
+      color: var(--income);
+      background: var(--income-light);
+      border-color: rgba(22, 163, 74, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.08);
+    }
+
+    .quick-btn.income.active .btn-icon {
+      background: var(--income-soft);
+    }
+
+    .quick-btn.transfer.active {
+      color: var(--transfer);
+      background: var(--transfer-light);
+      border-color: rgba(37, 99, 235, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
+    }
+
+    .quick-btn.transfer.active .btn-icon {
+      background: var(--transfer-soft);
+    }
+
+    .picker-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .picker-main {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .picker-value {
+      font-size: 15px;
+      font-weight: 900;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .picker-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .picker-arrow {
+      color: #9ca3af;
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    .account-type-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .account-type-btn {
+      min-height: 50px;
+      border-radius: 16px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      color: #4b5563;
+      font-size: 10.5px;
+      font-weight: 900;
+    }
+
+    .account-type-btn span {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .account-type-btn.active {
+      color: #111827;
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.08);
+    }
+
+    .is-disabled .slot-topline label {
+      color: var(--disabled-text);
+    }
+
+    .disabled-slot,
+    .input:disabled,
+    .textarea:disabled {
+      color: var(--disabled-text);
+      background: var(--disabled);
+      border-style: dashed;
+    }
+
+    .disabled-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 850;
+    }
+
+    .tax-choice {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .choice {
+      min-height: 46px;
+      border-radius: 15px;
+      background: white;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 950;
+    }
+
+    .choice.active.expense-active {
+      color: var(--expense);
+      background: var(--expense-soft);
+      border-color: rgba(220, 38, 38, 0.38);
+    }
+
+    .choice.active.income-active {
+      color: var(--income);
+      background: var(--income-soft);
+      border-color: rgba(22, 163, 74, 0.38);
+    }
+
+    .actions {
+      display: grid;
+      gap: 9px;
+      margin-top: 2px;
+    }
+
+    .primary {
+      min-height: 56px;
+      border-radius: 18px;
+      color: white;
+      background: var(--expense);
+      font-weight: 950;
+      letter-spacing: -0.02em;
+      box-shadow: 0 16px 36px rgba(220, 38, 38, 0.18);
+    }
+
+    .primary.income {
+      background: var(--income);
+      box-shadow: 0 16px 36px rgba(22, 163, 74, 0.18);
+    }
+
+    .primary.transfer {
+      background: var(--transfer);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.18);
+    }
+
+    .primary.editing {
+      background: #4b5563;
+      box-shadow: 0 16px 36px rgba(75, 85, 99, 0.18);
+    }
+
+    .secondary {
+      min-height: 48px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      color: #374151;
+      background: white;
+      font-weight: 950;
+    }
+
+    .recent-section {
+      margin-top: 14px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 2px 10px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.035em;
+    }
+
+    .section-header p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .recent-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .txn-card {
+      padding: 12px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: white;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    .txn-top {
+      display: flex;
+      gap: 9px;
+      align-items: start;
+      justify-content: space-between;
+    }
+
+    .txn-main {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .txn-badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 950;
+      margin-bottom: 3px;
+    }
+
+    .txn-badge.expense {
+      color: var(--expense);
+      background: var(--expense-soft);
+    }
+
+    .txn-badge.income {
+      color: var(--income);
+      background: var(--income-soft);
+    }
+
+    .txn-badge.transfer {
+      color: var(--transfer);
+      background: var(--transfer-soft);
+    }
+
+    .txn-title {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      align-items: baseline;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .txn-title strong {
+      font-size: 17px;
+      letter-spacing: -0.03em;
+    }
+
+    .txn-title span {
+      font-weight: 850;
+    }
+
+    .txn-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .txn-actions {
+      display: grid;
+      gap: 7px;
+      flex: 0 0 auto;
+    }
+
+    .tiny {
+      min-height: 34px;
+      border-radius: 12px;
+      padding: 0 10px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      color: #374151;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .tiny.delete {
+      color: var(--danger);
+      background: #fff1f2;
+      border-color: #fecaca;
+    }
+
+    .section-island {
+      position: fixed;
+      z-index: 18;
+      right: max(10px, env(safe-area-inset-right));
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      display: grid;
+      gap: 8px;
+    }
+
+    .island-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      font-size: 18px;
+    }
+
+    .island-btn.primary-fab {
+      background: #111827;
+      color: white;
+      border-color: #111827;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      background: rgba(15, 23, 42, 0.38);
+    }
+
+    .modal-backdrop.show {
+      display: block;
+    }
+
+    .bottom-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 60;
+      display: none;
+      max-height: min(82vh, 760px);
+      overflow: hidden;
+      border-radius: 28px 28px 0 0;
+      background: var(--card);
+      box-shadow: 0 -24px 60px rgba(15, 23, 42, 0.22);
+      transform: translateY(105%);
+      transition: transform 190ms ease;
+    }
+
+    .bottom-sheet.show {
+      display: block;
+      transform: translateY(0);
+    }
+
+    .sheet-inner {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: 12px 14px calc(18px + env(safe-area-inset-bottom));
+    }
+
+    .sheet-handle {
+      width: 46px;
+      height: 5px;
+      border-radius: 999px;
+      background: #d1d5db;
+      margin: 0 auto 13px;
+    }
+
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .sheet-head h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.04em;
+    }
+
+    .sheet-head p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .close {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: #f3f4f6;
+      color: #374151;
+      font-weight: 950;
+    }
+
+    .sheet-search {
+      margin-bottom: 12px;
+    }
+
+    .picker-list {
+      max-height: 49vh;
+      overflow-y: auto;
+      display: grid;
+      gap: 10px;
+      padding-bottom: 4px;
+    }
+
+    .choice-card {
+      width: 100%;
+      min-height: 64px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .choice-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: #f3f4f6;
+      font-size: 20px;
+    }
+
+    .choice-icon.expense {
+      color: var(--expense);
+      background: var(--expense-soft);
+    }
+
+    .choice-icon.income {
+      color: var(--income);
+      background: var(--income-soft);
+    }
+
+    .choice-icon.transfer {
+      color: var(--transfer);
+      background: var(--transfer-soft);
+    }
+
+    .choice-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .choice-main strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 3px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .choice-main span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .choice-check {
+      color: var(--income);
+      font-weight: 950;
+      font-size: 18px;
+    }
+
+    .empty-state {
+      padding: 20px 12px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 20px;
+      background: #f9fafb;
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 14px;
+      right: 72px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      z-index: 80;
+      padding: 13px 14px;
+      border-radius: 17px;
+      background: #111827;
+      color: white;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      transform: translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: 180ms ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (min-width: 720px) {
+      .shell {
+        padding-top: 22px;
+      }
+
+      .topbar {
+        margin: -22px -14px 16px;
+        padding-top: 18px;
+      }
+
+      .principle-note {
+        text-align: center;
+      }
+
+      .actions {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+
+      .section-island {
+        right: calc(50% - 340px);
+      }
+
+      .bottom-sheet {
+        left: 50%;
+        right: auto;
+        bottom: 24px;
+        width: min(560px, calc(100% - 32px));
+        border-radius: 28px;
+        transform: translate(-50%, 110%);
+      }
+
+      .bottom-sheet.show {
+        transform: translate(-50%, 0);
+      }
+
+      .picker-list {
+        max-height: 460px;
+      }
+
+      .toast {
+        left: 50%;
+        right: auto;
+        bottom: 28px;
+        width: 430px;
+        transform: translate(-50%, 18px);
+      }
+
+      .toast.show {
+        transform: translate(-50%, 0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="title-block">
+        <div class="eyebrow">● Button-First Logger</div>
+        <h1>Quick Log</h1>
+        <p>Primary choices outside. Details in modal.</p>
+      </div>
+      <button id="openPresetTop" class="preset-open" type="button">⚡ Presets</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="principle-note">
+      <strong>New flow:</strong> Tier 1 uses visible buttons. Account type buttons are outside. Modals are only for Tier 2 and exact account choice.
+    </div>
+
+    <section id="log" class="card">
+      <div class="type-switcher" role="tablist" aria-label="Transaction type">
+        <button class="type-tab expense active" data-type="Expense" type="button">
+          <span class="icon">↘</span>
+          <span class="label">Expense</span>
+        </button>
+        <button class="type-tab income" data-type="Income" type="button">
+          <span class="icon">↗</span>
+          <span class="label">Income</span>
+        </button>
+        <button class="type-tab transfer" data-type="Transfer" type="button">
+          <span class="icon">↔</span>
+          <span class="label">Transfer</span>
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div id="editBanner" class="edit-banner">
+          <div class="edit-icon">✏️</div>
+          <div class="edit-text">
+            <strong>Editing transaction</strong>
+            <span id="editBannerDetail">Sweet Drinks & Snacks · ฿53 · KBank</span>
+          </div>
+          <button id="cancelEditBtn" class="cancel-edit" type="button">Cancel</button>
+        </div>
+
+        <form id="logForm" class="form">
+          <div class="amount-block">
+            <div class="amount-label">
+              <span>Amount</span>
+              <span id="amountHint">Expense</span>
+            </div>
+            <div class="amount-input-row">
+              <span class="currency">฿</span>
+              <input id="amount" class="amount-input" inputmode="decimal" placeholder="0" value="53" />
+            </div>
+          </div>
+
+          <div class="slot">
+            <div class="slot-topline">
+              <label for="date">Date</label>
+              <span class="slot-hint">same position</span>
+            </div>
+            <input id="date" class="input" type="date" value="2026-06-30" />
+          </div>
+
+          <div class="slot">
+            <div class="slot-topline">
+              <label id="category1Label">Tier 1 Category</label>
+              <span id="category1Hint" class="slot-hint">4 × 2 muscle memory</span>
+            </div>
+            <div id="category1Grid" class="quick-grid category-grid expense-grid"></div>
+          </div>
+
+          <div id="category2Slot" class="slot">
+            <div class="slot-topline">
+              <label id="category2Label">Tier 2 Category</label>
+              <span class="slot-hint">detail picker</span>
+            </div>
+            <button id="category2Field" class="picker-field" type="button">
+              <span class="picker-main">
+                <span id="category2Value" class="picker-value">Sweet Drinks & Snacks</span>
+                <span id="category2Meta" class="picker-meta">Tap Tier 1 to open this list</span>
+              </span>
+              <span class="picker-arrow">›</span>
+            </button>
+            <div id="category2Disabled" class="disabled-slot" style="display:none;">— Not used for this type</div>
+          </div>
+
+          <div class="slot">
+            <div class="slot-topline">
+              <label id="account1Label">Paid From</label>
+              <span class="slot-hint">choose type first</span>
+            </div>
+            <div id="account1TypeRow" class="account-type-row"></div>
+            <button id="account1Field" class="picker-field" type="button" data-account-slot="account1">
+              <span class="picker-main">
+                <span id="account1Value" class="picker-value">KBank</span>
+                <span id="account1Meta" class="picker-meta">Bank · tap account or type button</span>
+              </span>
+              <span class="picker-arrow">›</span>
+            </button>
+          </div>
+
+          <div id="account2Slot" class="slot">
+            <div class="slot-topline">
+              <label id="account2Label">Secondary Account</label>
+              <span class="slot-hint">same slot</span>
+            </div>
+            <div id="account2TypeRow" class="account-type-row"></div>
+            <button id="account2Field" class="picker-field" type="button" data-account-slot="account2">
+              <span class="picker-main">
+                <span id="account2Value" class="picker-value">Bangkok Bank</span>
+                <span id="account2Meta" class="picker-meta">Bank · tap account or type button</span>
+              </span>
+              <span class="picker-arrow">›</span>
+            </button>
+            <div id="account2Disabled" class="disabled-slot" style="display:none;">— Not used for this type</div>
+          </div>
+
+          <div id="taxStatusSlot" class="slot">
+            <div class="slot-topline">
+              <label id="taxStatusLabel">Tax Deduction Status</label>
+              <span class="slot-hint">Yes / No / Check</span>
+            </div>
+            <div id="taxChoice" class="tax-choice">
+              <button class="choice" type="button" data-tax="Yes">Yes</button>
+              <button class="choice active expense-active" type="button" data-tax="No">No</button>
+              <button class="choice" type="button" data-tax="Check">Check</button>
+            </div>
+            <div id="taxStatusDisabled" class="disabled-slot" style="display:none;">— Not used for Transfer</div>
+          </div>
+
+          <div id="taxNoteSlot" class="slot">
+            <div class="slot-topline">
+              <label id="taxNoteLabel" for="taxNote">Tax Note</label>
+              <span class="slot-hint">optional</span>
+            </div>
+            <input id="taxNote" class="input" placeholder="Optional: Easy E-Receipt, e-tax invoice, etc." />
+          </div>
+
+          <div class="slot">
+            <div class="slot-topline">
+              <label for="memo">Memo</label>
+              <span class="slot-hint">optional</span>
+            </div>
+            <textarea id="memo" class="textarea" maxlength="200" placeholder="Optional memo">Milk tea</textarea>
+          </div>
+
+          <div class="actions">
+            <button id="submitBtn" class="primary expense" type="submit">Add Expense</button>
+            <button id="clearBtn" class="secondary" type="button">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="recent" class="recent-section" aria-label="Recent transactions">
+      <div class="section-header">
+        <div>
+          <h2>Recent Transactions</h2>
+          <p>Below the form. One vertical scroll direction.</p>
+        </div>
+      </div>
+
+      <div id="recentList" class="recent-list"></div>
+    </section>
+  </main>
+
+  <div class="section-island" aria-label="Quick actions">
+    <button class="island-btn" type="button" data-jump="#log" aria-label="Jump to log">✍️</button>
+    <button class="island-btn" type="button" data-jump="#recent" aria-label="Jump to recent">🕘</button>
+    <button id="openPresetFab" class="island-btn primary-fab" type="button" aria-label="Open presets">⚡</button>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop"></div>
+
+  <aside id="pickerSheet" class="bottom-sheet" aria-label="Picker">
+    <div class="sheet-inner">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <h2 id="pickerTitle">Choose</h2>
+          <p id="pickerSubtitle">Search or tap a choice.</p>
+        </div>
+        <button id="closePicker" class="close" type="button">×</button>
+      </div>
+
+      <div class="sheet-search">
+        <input id="pickerSearch" class="input" placeholder="Type to filter choices" />
+      </div>
+
+      <div id="pickerList" class="picker-list"></div>
+    </div>
+  </aside>
+
+  <aside id="presetSheet" class="bottom-sheet" aria-label="Preset catalog">
+    <div class="sheet-inner">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <h2>Preset Catalog</h2>
+          <p>Tap one to prefill the stable form slots.</p>
+        </div>
+        <button id="closePreset" class="close" type="button">×</button>
+      </div>
+
+      <div class="sheet-search">
+        <input id="presetSearch" class="input" placeholder="Search presets, e.g. milk, KTC, salary" />
+      </div>
+
+      <div id="presetList" class="picker-list"></div>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const state = {
+      type: "Expense",
+      mode: "create",
+      editingId: null,
+      amount: "53",
+      category1: "Food & Dining",
+      category2: "Sweet Drinks & Snacks",
+      account1: "KBank",
+      account2: "",
+      account1Type: "Bank",
+      account2Type: "Bank",
+      taxStatus: "No",
+      currentPicker: null,
+      currentAccountSlot: null
+    };
+
+    const categoryData = {
+      Expense: {
+        "Housing & Living": ["Rent", "Electricity", "Water", "Internet", "Phone", "House Supplies", "Furniture"],
+        "Food & Dining": ["Eating Out", "Eating Out - Buffet", "Delivery", "Groceries", "Sweet Drinks & Snacks"],
+        "Transportation": ["Transit", "Taxi / Grab"],
+        "Health & Personal Care": ["Doctor", "Medicine", "Dental", "Clothes", "Shoes", "Haircut", "Skincare"],
+        "Mom Care": ["Monthly Gift", "Health Care"],
+        "Career & Professional": ["Software", "Learning"],
+        "Fun & Play": ["Entertainment", "Gaming", "Gadgets", "Gifts"],
+        "Financial & Admin": ["Taxes", "Insurance", "Loans", "Investments", "Other", "Missing"]
+      },
+      Income: ["Salary", "Bonus", "Interest", "Gift Received", "Dividend", "Freelance / Business Income", "Refund / Reimbursement", "Cashback / Reward", "Other Income"],
+      Transfer: ["Transfer Between Accounts", "Pay Credit Card", "Invest", "Withdraw Cash", "Deposit Cash", "Loan Transfer", "Other Transfer"]
+    };
+
+    const categoryShortLabels = {
+      "Housing & Living": "Housing",
+      "Food & Dining": "Food",
+      "Transportation": "Transport",
+      "Health & Personal Care": "Health",
+      "Mom Care": "Mom Care",
+      "Career & Professional": "Career",
+      "Fun & Play": "Fun",
+      "Financial & Admin": "Finance",
+      "Gift Received": "Gift",
+      "Freelance / Business Income": "Freelance",
+      "Refund / Reimbursement": "Refund",
+      "Cashback / Reward": "Cashback",
+      "Transfer Between Accounts": "Transfer",
+      "Pay Credit Card": "Pay Card",
+      "Withdraw Cash": "Withdraw",
+      "Deposit Cash": "Deposit",
+      "Loan Transfer": "Loan"
+    };
+
+    const categoryIcons = {
+      "Housing & Living": "🏠",
+      "Food & Dining": "🍲",
+      "Transportation": "🚗",
+      "Health & Personal Care": "💆",
+      "Mom Care": "❤️",
+      "Career & Professional": "💼",
+      "Fun & Play": "🎉",
+      "Financial & Admin": "🏦",
+      "Eating Out": "🍽️",
+      "Eating Out - Buffet": "🥘",
+      "Delivery": "🛵",
+      "Groceries": "🛒",
+      "Sweet Drinks & Snacks": "🧋",
+      "Salary": "💵",
+      "Bonus": "🎁",
+      "Interest": "🏦",
+      "Gift Received": "🎁",
+      "Dividend": "📈",
+      "Freelance / Business Income": "💼",
+      "Refund / Reimbursement": "↩️",
+      "Cashback / Reward": "✨",
+      "Other Income": "➕",
+      "Transfer Between Accounts": "↔️",
+      "Pay Credit Card": "💳",
+      "Invest": "📈",
+      "Withdraw Cash": "🏧",
+      "Deposit Cash": "🏦",
+      "Loan Transfer": "🤝",
+      "Other Transfer": "➕"
+    };
+
+    const accountTypes = [
+      { type: "Cash", label: "Cash", icon: "💵" },
+      { type: "Bank", label: "Bank", icon: "🏦" },
+      { type: "Wallet", label: "Wallet", icon: "📱" },
+      { type: "Credit", label: "Credit", icon: "💳" },
+      { type: "Invest", label: "Invest", icon: "📈" }
+    ];
+
+    const accounts = [
+      { name: "Cash Wallet", type: "Cash", note: "Physical money" },
+      { name: "Home Cash - Coins", type: "Cash", note: "Home coin" },
+      { name: "Home Cash - Notes", type: "Cash", note: "Home bank" },
+      { name: "Bag Cash - Coins", type: "Cash", note: "Bag coin" },
+
+      { name: "KBank", type: "Bank", note: "Main bank" },
+      { name: "Bangkok Bank", type: "Bank", note: "Bank account" },
+      { name: "UOB One Account", type: "Bank", note: "Bank account" },
+      { name: "UOB Premier 3770", type: "Bank", note: "Bank account" },
+      { name: "UOB Preferred 3635", type: "Bank", note: "Bank account" },
+      { name: "Krungsri Now 2802", type: "Bank", note: "Bank account" },
+      { name: "KBank eBook", type: "Bank", note: "Bank account" },
+      { name: "KBank Make", type: "Bank", note: "Bank account" },
+      { name: "TTB Me Save", type: "Bank", note: "Bank account" },
+      { name: "LHB You", type: "Bank", note: "Bank account" },
+      { name: "KKP Start Saving", type: "Bank", note: "Bank account" },
+      { name: "UOB TMRW Everyday", type: "Bank", note: "Bank account" },
+      { name: "UOB TMRW Saving", type: "Bank", note: "Bank account" },
+      { name: "CIMB Chill D", type: "Bank", note: "Bank account" },
+      { name: "iBank", type: "Bank", note: "Bank account" },
+      { name: "Alpha", type: "Bank", note: "Bank account" },
+      { name: "SCB", type: "Bank", note: "Bank account" },
+      { name: "TTB All Free", type: "Bank", note: "Bank account" },
+
+      { name: "TrueMoney", type: "Wallet", note: "E-wallet" },
+      { name: "The1 Red", type: "Wallet", note: "Reward wallet" },
+
+      { name: "Bangkok M Live 7116", type: "Credit", note: "Credit card" },
+      { name: "KTC World Rewards 8897", type: "Credit", note: "Credit card" },
+      { name: "KTC Visa 9369", type: "Credit", note: "Credit card" },
+      { name: "TTB Disney Credit", type: "Credit", note: "Credit card" },
+      { name: "Krungsri Signature 1851", type: "Credit", note: "Credit card" },
+      { name: "UOB One 5313", type: "Credit", note: "Credit card" },
+      { name: "Lotus Beyond 6673", type: "Credit", note: "Credit card" },
+      { name: "KBank The Passion 7066", type: "Credit", note: "Credit card" },
+      { name: "Citi Premier 8041", type: "Credit", note: "Credit card" },
+      { name: "Citi Premier 9108", type: "Credit", note: "Credit card" },
+      { name: "CardX Beyond 5993", type: "Credit", note: "Credit card" },
+      { name: "Bangkok Visa Card 0119", type: "Credit", note: "Credit card" },
+      { name: "UOB Cash Plus", type: "Credit", note: "Credit line" },
+      { name: "Citi Ready Credit", type: "Credit", note: "Credit line" },
+
+      { name: "Dime! Save", type: "Invest", note: "Saving / investment" },
+      { name: "Broker", type: "Invest", note: "Investment account" }
+    ];
+
+    const presets = [
+      { name: "Food KBank", icon: "🍽️", type: "Expense", amount: "", category1: "Food & Dining", category2: "Eating Out", account1: "KBank", taxStatus: "No", memo: "" },
+      { name: "Milk Tea", icon: "🧋", type: "Expense", amount: "", category1: "Food & Dining", category2: "Sweet Drinks & Snacks", account1: "KBank", taxStatus: "No", memo: "Milk tea" },
+      { name: "Metro 53", icon: "🚇", type: "Expense", amount: "53", category1: "Transportation", category2: "Transit", account1: "Cash Wallet", taxStatus: "No", memo: "Metro" },
+      { name: "Buffet GF", icon: "🥘", type: "Expense", amount: "", category1: "Food & Dining", category2: "Eating Out - Buffet", account1: "KTC World Rewards 8897", taxStatus: "No", memo: "Buffet" },
+      { name: "Mom Monthly Gift", icon: "❤️", type: "Expense", amount: "", category1: "Mom Care", category2: "Monthly Gift", account1: "KBank", taxStatus: "No", memo: "Monthly gift to mom" },
+      { name: "Salary BBL", icon: "💵", type: "Income", amount: "", category1: "Salary", account1: "Bangkok Bank", taxStatus: "Yes", memo: "Monthly salary" },
+      { name: "Bank Interest", icon: "🏦", type: "Income", amount: "", category1: "Interest", account1: "Bangkok Bank", taxStatus: "Check", taxNote: "Review yearly interest total", memo: "Bank interest" },
+      { name: "Pay KTC", icon: "💳", type: "Transfer", amount: "", category1: "Pay Credit Card", account1: "KBank", account2: "KTC World Rewards 8897", memo: "Pay credit card" },
+      { name: "Invest", icon: "📈", type: "Transfer", amount: "", category1: "Invest", account1: "KBank", account2: "Dime! Save", memo: "DCA" }
+    ];
+
+    const recent = [
+      { id: "TXN-001", type: "Expense", amount: "53", title: "Sweet Drinks & Snacks", category1: "Food & Dining", category2: "Sweet Drinks & Snacks", account1: "KBank", taxStatus: "No", memo: "Milk tea", time: "Today 10:24" },
+      { id: "TXN-002", type: "Income", amount: "50,000", title: "Salary", category1: "Salary", account1: "Bangkok Bank", taxStatus: "Yes", memo: "June salary", time: "Yesterday" },
+      { id: "TXN-003", type: "Transfer", amount: "10,000", title: "Invest", category1: "Invest", account1: "KBank", account2: "Dime! Save", memo: "DCA fund", time: "Yesterday" },
+      { id: "TXN-004", type: "Expense", amount: "399", title: "Eating Out - Buffet", category1: "Food & Dining", category2: "Eating Out - Buffet", account1: "KTC World Rewards 8897", taxStatus: "No", memo: "Buffet with gf", time: "Jun 29" },
+      { id: "TXN-005", type: "Transfer", amount: "2,000", title: "Pay KTC", category1: "Pay Credit Card", account1: "KBank", account2: "KTC World Rewards 8897", memo: "", time: "Jun 27" }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+
+    function typeClass(type) {
+      return type.toLowerCase();
+    }
+
+    function getAccount(name) {
+      return accounts.find((account) => account.name === name) || null;
+    }
+
+    function accountTypeOf(name) {
+      return getAccount(name)?.type || "Bank";
+    }
+
+    function getAccountTypeIcon(type) {
+      return accountTypes.find((item) => item.type === type)?.icon || "🏦";
+    }
+
+    function getCategory1Options() {
+      if (state.type === "Expense") return Object.keys(categoryData.Expense);
+      return categoryData[state.type];
+    }
+
+    function getCategory2Options() {
+      if (state.type !== "Expense") return [];
+      return categoryData.Expense[state.category1] || [];
+    }
+
+    function resetDefaultsForType() {
+      if (state.type === "Expense") {
+        state.category1 = "Food & Dining";
+        state.category2 = "Sweet Drinks & Snacks";
+        state.account1 = "KBank";
+        state.account2 = "";
+        state.account1Type = "Bank";
+        state.account2Type = "Bank";
+        state.taxStatus = "No";
+      }
+
+      if (state.type === "Income") {
+        state.category1 = "Salary";
+        state.category2 = "";
+        state.account1 = "Bangkok Bank";
+        state.account2 = "";
+        state.account1Type = "Bank";
+        state.account2Type = "Bank";
+        state.taxStatus = "Check";
+      }
+
+      if (state.type === "Transfer") {
+        state.category1 = "Transfer Between Accounts";
+        state.category2 = "";
+        state.account1 = "KBank";
+        state.account2 = "Bangkok Bank";
+        state.account1Type = "Bank";
+        state.account2Type = "Bank";
+        state.taxStatus = "";
+      }
+    }
+
+    function renderForm() {
+      document.querySelectorAll(".type-tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.type === state.type);
+      });
+
+      const isExpense = state.type === "Expense";
+      const isIncome = state.type === "Income";
+      const isTransfer = state.type === "Transfer";
+
+      $("amountHint").textContent = state.type;
+
+      $("category1Label").textContent = isExpense
+        ? "Tier 1 Category"
+        : isIncome
+          ? "Income Category"
+          : "Transfer Category";
+
+      $("category1Hint").textContent = isExpense
+        ? "4 × 2 muscle memory"
+        : "tap to highlight";
+
+      $("category2Slot").classList.toggle("is-disabled", !isExpense);
+      $("category2Field").style.display = isExpense ? "flex" : "none";
+      $("category2Disabled").style.display = isExpense ? "none" : "flex";
+      $("category2Disabled").textContent = isIncome ? "— Not used for Income" : "— Not used for Transfer";
+      $("category2Value").textContent = state.category2 || "Choose Tier 2";
+      $("category2Meta").textContent = isExpense
+        ? `Tap to choose under ${state.category1}`
+        : "Disabled";
+
+      $("account1Label").textContent = isExpense
+        ? "Paid From"
+        : isIncome
+          ? "Received To"
+          : "From Account";
+
+      const acc1 = getAccount(state.account1);
+      $("account1Value").textContent = state.account1 || "Choose account";
+      $("account1Meta").textContent = `${acc1?.type || state.account1Type} · tap account or type button`;
+
+      $("account2Label").textContent = isTransfer ? "To Account" : "Secondary Account";
+      $("account2Slot").classList.toggle("is-disabled", !isTransfer);
+      $("account2TypeRow").style.display = isTransfer ? "grid" : "none";
+      $("account2Field").style.display = isTransfer ? "flex" : "none";
+      $("account2Disabled").style.display = isTransfer ? "none" : "flex";
+      $("account2Disabled").textContent = isExpense ? "— Not used for Expense" : "— Not used for Income";
+
+      const acc2 = getAccount(state.account2);
+      $("account2Value").textContent = state.account2 || "Choose account";
+      $("account2Meta").textContent = `${acc2?.type || state.account2Type} · tap account or type button`;
+
+      const taxEnabled = !isTransfer;
+      $("taxStatusLabel").textContent = isExpense ? "Tax Deduction Status" : isIncome ? "Taxable?" : "Tax Status";
+      $("taxStatusSlot").classList.toggle("is-disabled", !taxEnabled);
+      $("taxChoice").style.display = taxEnabled ? "grid" : "none";
+      $("taxStatusDisabled").style.display = taxEnabled ? "none" : "flex";
+      $("taxStatusDisabled").textContent = "— Not used for Transfer";
+
+      $("taxNote").disabled = !taxEnabled;
+      $("taxNoteSlot").classList.toggle("is-disabled", !taxEnabled);
+      $("taxNote").placeholder = !taxEnabled
+        ? "Not used for Transfer"
+        : isExpense
+          ? "Optional: Easy E-Receipt, e-tax invoice, etc."
+          : "Optional: withholding tax, dividend note, interest note, etc.";
+
+      renderCategoryButtons();
+      renderAccountTypeButtons("account1");
+      renderAccountTypeButtons("account2");
+      updateTaxChoices();
+      updateSubmitButton();
+    }
+
+    function renderCategoryButtons() {
+      const grid = $("category1Grid");
+      grid.innerHTML = "";
+
+      const options = getCategory1Options();
+      grid.className = `quick-grid category-grid ${state.type === "Expense" ? "expense-grid" : "other-grid"}`;
+
+      options.forEach((name) => {
+        const button = document.createElement("button");
+        button.className = `quick-btn ${typeClass(state.type)}`;
+        button.type = "button";
+        button.classList.toggle("active", name === state.category1);
+        button.innerHTML = `
+          <span class="btn-icon">${categoryIcons[name] || "•"}</span>
+          <span class="btn-label">${categoryShortLabels[name] || name}</span>
+        `;
+        button.addEventListener("click", () => selectCategory1(name));
+        grid.appendChild(button);
+      });
+    }
+
+    function selectCategory1(name) {
+      state.category1 = name;
+
+      if (state.type === "Expense") {
+        const tier2Options = getCategory2Options();
+        state.category2 = tier2Options.includes(state.category2) ? state.category2 : "";
+        renderForm();
+        openTier2Picker();
+      } else {
+        state.category2 = "";
+        renderForm();
+        showToast(`Selected: ${name}`);
+      }
+    }
+
+    function renderAccountTypeButtons(slot) {
+      const row = slot === "account1" ? $("account1TypeRow") : $("account2TypeRow");
+      row.innerHTML = "";
+
+      const selectedType = slot === "account1" ? state.account1Type : state.account2Type;
+
+      accountTypes.forEach((item) => {
+        const button = document.createElement("button");
+        button.className = "account-type-btn";
+        button.type = "button";
+        button.classList.toggle("active", item.type === selectedType);
+        button.innerHTML = `<span>${item.icon}</span>${item.label}`;
+        button.addEventListener("click", () => openAccountPicker(slot, item.type));
+        row.appendChild(button);
+      });
+    }
+
+    function updateTaxChoices() {
+      document.querySelectorAll("#taxChoice .choice").forEach((button) => {
+        const active = button.dataset.tax === state.taxStatus;
+        button.classList.toggle("active", active);
+        button.classList.toggle("expense-active", active && state.type === "Expense");
+        button.classList.toggle("income-active", active && state.type === "Income");
+      });
+    }
+
+    function updateSubmitButton() {
+      const button = $("submitBtn");
+      button.className = "primary";
+
+      if (state.mode === "edit") {
+        button.classList.add("editing");
+        button.textContent = "Save Changes";
+        $("editBanner").classList.add("show");
+      } else {
+        button.classList.add(typeClass(state.type));
+        button.textContent = `Add ${state.type}`;
+        $("editBanner").classList.remove("show");
+      }
+    }
+
+    function openTier2Picker() {
+      if (state.type !== "Expense") return;
+      state.currentPicker = "category2";
+      state.currentAccountSlot = null;
+      $("modalBackdrop").classList.add("show");
+      $("pickerSheet").classList.add("show");
+      $("presetSheet").classList.remove("show");
+      $("pickerSearch").value = "";
+      $("pickerTitle").textContent = "Choose Tier 2";
+      $("pickerSubtitle").textContent = `${state.category1} · search or tap`;
+      renderTier2Choices();
+      setTimeout(() => $("pickerSearch").focus(), 180);
+    }
+
+    function openAccountPicker(slot, type) {
+      state.currentPicker = "account";
+      state.currentAccountSlot = slot;
+
+      if (slot === "account1") {
+        state.account1Type = type;
+      } else {
+        state.account2Type = type;
+      }
+
+      renderForm();
+
+      $("modalBackdrop").classList.add("show");
+      $("pickerSheet").classList.add("show");
+      $("presetSheet").classList.remove("show");
+      $("pickerSearch").value = "";
+      $("pickerTitle").textContent = slot === "account1" ? $("account1Label").textContent : $("account2Label").textContent;
+      $("pickerSubtitle").textContent = `${type} accounts · type to search all accounts`;
+      renderAccountChoices();
+      setTimeout(() => $("pickerSearch").focus(), 180);
+    }
+
+    function openCurrentAccountPicker(slot) {
+      const type = slot === "account1" ? state.account1Type : state.account2Type;
+      openAccountPicker(slot, type);
+    }
+
+    function closePicker() {
+      $("modalBackdrop").classList.remove("show");
+      $("pickerSheet").classList.remove("show");
+      state.currentPicker = null;
+      state.currentAccountSlot = null;
+    }
+
+    function renderTier2Choices() {
+      const query = $("pickerSearch").value.trim().toLowerCase();
+      const choices = getCategory2Options().filter((name) => name.toLowerCase().includes(query));
+      const list = $("pickerList");
+      list.innerHTML = "";
+
+      if (!choices.length) {
+        list.innerHTML = `<div class="empty-state">No Tier 2 category found. Try a different keyword.</div>`;
+        return;
+      }
+
+      choices.forEach((name) => {
+        const button = document.createElement("button");
+        button.className = "choice-card";
+        button.type = "button";
+        button.innerHTML = `
+          <span class="choice-icon expense">${categoryIcons[name] || "•"}</span>
+          <span class="choice-main">
+            <strong>${name}</strong>
+            <span>Tier 2 under ${state.category1}</span>
+          </span>
+          <span class="choice-check">${name === state.category2 ? "✓" : ""}</span>
+        `;
+        button.addEventListener("click", () => {
+          state.category2 = name;
+          renderForm();
+          closePicker();
+          showToast(`Selected Tier 2: ${name}`);
+        });
+        list.appendChild(button);
+      });
+    }
+
+    function renderAccountChoices() {
+      const query = $("pickerSearch").value.trim().toLowerCase();
+      const slot = state.currentAccountSlot;
+      const selectedType = slot === "account1" ? state.account1Type : state.account2Type;
+      const selectedName = slot === "account1" ? state.account1 : state.account2;
+
+      let choices = accounts.filter((account) => account.type === selectedType);
+
+      if (query) {
+        choices = accounts.filter((account) => {
+          return `${account.name} ${account.type} ${account.note}`.toLowerCase().includes(query);
+        });
+      }
+
+      const list = $("pickerList");
+      list.innerHTML = "";
+
+      if (!choices.length) {
+        list.innerHTML = `<div class="empty-state">No account found. Try another keyword.</div>`;
+        return;
+      }
+
+      choices.forEach((account) => {
+        const button = document.createElement("button");
+        button.className = "choice-card";
+        button.type = "button";
+        button.innerHTML = `
+          <span class="choice-icon">${getAccountTypeIcon(account.type)}</span>
+          <span class="choice-main">
+            <strong>${account.name}</strong>
+            <span>${account.type} · ${account.note}</span>
+          </span>
+          <span class="choice-check">${account.name === selectedName ? "✓" : ""}</span>
+        `;
+        button.addEventListener("click", () => {
+          if (slot === "account1") {
+            state.account1 = account.name;
+            state.account1Type = account.type;
+          } else {
+            state.account2 = account.name;
+            state.account2Type = account.type;
+          }
+          renderForm();
+          closePicker();
+          showToast(`Selected account: ${account.name}`);
+        });
+        list.appendChild(button);
+      });
+    }
+
+    function openPresets() {
+      $("modalBackdrop").classList.add("show");
+      $("presetSheet").classList.add("show");
+      $("pickerSheet").classList.remove("show");
+      $("presetSearch").value = "";
+      renderPresets("");
+      setTimeout(() => $("presetSearch").focus(), 180);
+    }
+
+    function closePresets() {
+      $("modalBackdrop").classList.remove("show");
+      $("presetSheet").classList.remove("show");
+    }
+
+    function buildPresetMeta(preset) {
+      if (preset.type === "Transfer") {
+        return `${preset.category1} · ${preset.account1 || "From"} → ${preset.account2 || "To"}`;
+      }
+
+      const amount = preset.amount ? `฿${preset.amount} · ` : "";
+      const category = preset.type === "Expense"
+        ? `${preset.category1} / ${preset.category2}`
+        : preset.category1;
+
+      return `${amount}${category} · ${preset.account1 || ""}`;
+    }
+
+    function renderPresets(filter = "") {
+      const list = $("presetList");
+      list.innerHTML = "";
+
+      const lower = filter.trim().toLowerCase();
+      const filtered = presets.filter((preset) => {
+        return `${preset.name} ${preset.type} ${buildPresetMeta(preset)}`.toLowerCase().includes(lower);
+      });
+
+      filtered.forEach((preset) => {
+        const button = document.createElement("button");
+        button.className = "choice-card";
+        button.type = "button";
+        button.innerHTML = `
+          <span class="choice-icon ${typeClass(preset.type)}">${preset.icon}</span>
+          <span class="choice-main">
+            <strong>${preset.name}</strong>
+            <span>${buildPresetMeta(preset)}</span>
+          </span>
+        `;
+        button.addEventListener("click", () => applyPreset(preset));
+        list.appendChild(button);
+      });
+    }
+
+    function applyPreset(preset) {
+      state.mode = "create";
+      state.editingId = null;
+      state.type = preset.type;
+      state.amount = preset.amount || "";
+      state.category1 = preset.category1 || "";
+      state.category2 = preset.type === "Expense" ? (preset.category2 || "") : "";
+      state.account1 = preset.account1 || "KBank";
+      state.account2 = preset.type === "Transfer" ? (preset.account2 || "Bangkok Bank") : "";
+      state.account1Type = accountTypeOf(state.account1);
+      state.account2Type = accountTypeOf(state.account2 || "Bangkok Bank");
+      state.taxStatus = preset.type === "Transfer" ? "" : (preset.taxStatus || (preset.type === "Expense" ? "No" : "Check"));
+
+      $("amount").value = state.amount;
+      $("taxNote").value = preset.taxNote || "";
+      $("memo").value = preset.memo || "";
+      renderForm();
+      closePresets();
+      showToast(`Preset applied: ${preset.name}`);
+      setTimeout(() => $("amount").focus(), 120);
+    }
+
+    function renderRecent() {
+      const list = $("recentList");
+      list.innerHTML = "";
+
+      recent.forEach((txn) => {
+        const accountLine = txn.type === "Transfer"
+          ? `${txn.account1} → ${txn.account2}${txn.memo ? " · " + txn.memo : ""}`
+          : `${txn.account1 || ""}${txn.memo ? " · " + txn.memo : ""}`;
+
+        const card = document.createElement("article");
+        card.className = "txn-card";
+        card.innerHTML = `
+          <div class="txn-top">
+            <div class="txn-main">
+              <span class="txn-badge ${typeClass(txn.type)}">${txn.type}</span>
+              <div class="txn-title">
+                <strong>฿${txn.amount}</strong>
+                <span>${txn.title}</span>
+              </div>
+              <div class="txn-meta">${accountLine}</div>
+              <div class="txn-meta">${txn.time}</div>
+            </div>
+            <div class="txn-actions">
+              <button class="tiny" type="button" data-action="edit" data-id="${txn.id}">Edit</button>
+              <button class="tiny delete" type="button" data-action="delete" data-id="${txn.id}">Delete</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      document.querySelectorAll("[data-action='edit']").forEach((button) => {
+        button.addEventListener("click", () => editTransaction(button.dataset.id));
+      });
+
+      document.querySelectorAll("[data-action='delete']").forEach((button) => {
+        button.addEventListener("click", () => deleteTransaction(button.dataset.id));
+      });
+    }
+
+    function editTransaction(id) {
+      const txn = recent.find((item) => item.id === id);
+      if (!txn) return;
+
+      state.mode = "edit";
+      state.editingId = id;
+      state.type = txn.type;
+      state.amount = txn.amount.replaceAll(",", "");
+      state.category1 = txn.category1 || "";
+      state.category2 = txn.type === "Expense" ? (txn.category2 || "") : "";
+      state.account1 = txn.account1 || "KBank";
+      state.account2 = txn.type === "Transfer" ? (txn.account2 || "Bangkok Bank") : "";
+      state.account1Type = accountTypeOf(state.account1);
+      state.account2Type = accountTypeOf(state.account2 || "Bangkok Bank");
+      state.taxStatus = txn.type === "Transfer" ? "" : (txn.taxStatus || (txn.type === "Expense" ? "No" : "Check"));
+
+      $("amount").value = state.amount;
+      $("memo").value = txn.memo || "";
+      $("taxNote").value = txn.taxNote || "";
+      $("editBannerDetail").textContent = `${txn.title} · ฿${txn.amount} · ${txn.account1 || ""}`;
+
+      renderForm();
+      document.querySelector("#log").scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast("Edit mode: transaction loaded into the same slots.");
+    }
+
+    function deleteTransaction(id) {
+      const txn = recent.find((item) => item.id === id);
+      if (!txn) return;
+
+      const confirmDelete = confirm(
+        `Delete this transaction?\n\n${txn.type} · ฿${txn.amount} · ${txn.title}\n\nReal app should soft delete by setting Deleted? = TRUE.`
+      );
+
+      if (confirmDelete) {
+        showToast(`Mock delete: ${txn.title}`);
+      }
+    }
+
+    function clearForm() {
+      state.mode = "create";
+      state.editingId = null;
+      $("amount").value = "";
+      $("memo").value = "";
+      $("taxNote").value = "";
+      resetDefaultsForType();
+      renderForm();
+      showToast("Form cleared.");
+    }
+
+    function closeAllSheets() {
+      $("modalBackdrop").classList.remove("show");
+      $("pickerSheet").classList.remove("show");
+      $("presetSheet").classList.remove("show");
+      state.currentPicker = null;
+      state.currentAccountSlot = null;
+    }
+
+    function showToast(message) {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timeout);
+      showToast.timeout = setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    document.querySelectorAll(".type-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        state.type = tab.dataset.type;
+        state.mode = "create";
+        state.editingId = null;
+        resetDefaultsForType();
+        renderForm();
+      });
+    });
+
+    $("category2Field").addEventListener("click", openTier2Picker);
+
+    $("account1Field").addEventListener("click", () => openCurrentAccountPicker("account1"));
+    $("account2Field").addEventListener("click", () => {
+      if (state.type === "Transfer") openCurrentAccountPicker("account2");
+    });
+
+    document.querySelectorAll("#taxChoice .choice").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (state.type === "Transfer") return;
+        state.taxStatus = button.dataset.tax;
+        updateTaxChoices();
+      });
+    });
+
+    $("pickerSearch").addEventListener("input", () => {
+      if (state.currentPicker === "category2") renderTier2Choices();
+      if (state.currentPicker === "account") renderAccountChoices();
+    });
+
+    $("presetSearch").addEventListener("input", () => renderPresets($("presetSearch").value));
+
+    $("closePicker").addEventListener("click", closePicker);
+    $("closePreset").addEventListener("click", closePresets);
+    $("modalBackdrop").addEventListener("click", closeAllSheets);
+
+    $("openPresetTop").addEventListener("click", openPresets);
+    $("openPresetFab").addEventListener("click", openPresets);
+
+    $("clearBtn").addEventListener("click", clearForm);
+    $("cancelEditBtn").addEventListener("click", clearForm);
+
+    $("logForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const payload = {
+        mode: state.mode,
+        transactionId: state.editingId,
+        type: state.type,
+        date: $("date").value,
+        amount: $("amount").value,
+        category1: state.category1,
+        category2: state.type === "Expense" ? state.category2 : "",
+        account1: state.account1,
+        account2: state.type === "Transfer" ? state.account2 : "",
+        taxStatus: state.type !== "Transfer" ? state.taxStatus : "",
+        taxNote: state.type !== "Transfer" ? $("taxNote").value : "",
+        memo: $("memo").value
+      };
+
+      console.log("Mock Google Apps Script payload:", payload);
+
+      // Later, this is where Google Apps Script can be called:
+      // google.script.run
+      //   .withSuccessHandler(handleSuccess)
+      //   .withFailureHandler(handleError)
+      //   .saveTransaction(payload);
+
+      showToast(`${state.mode === "edit" ? "Updated" : "Added"} mock ${state.type}: ฿${payload.amount || "0"}`);
+      state.mode = "create";
+      state.editingId = null;
+      renderForm();
+    });
+
+    document.querySelectorAll("[data-jump]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelector(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    renderForm();
+    renderPresets("");
+    renderRecent();
+  </script>
+</body>
+</html>

@@ -52,7 +52,7 @@ Suggested columns:
 - Active?
 - Sort Order
 
-Use `google_sheets_2_tier_expense_categories.md` as the baseline category catalog.
+Use `docs/reference/expense-categories-2-tier.md` as the baseline category catalog.
 
 ## Income_Categories
 
