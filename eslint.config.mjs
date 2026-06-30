@@ -55,12 +55,17 @@ export default [
         getSpreadsheetSummary_: "readonly",
         buildQuickLogBootstrapData: "readonly",
         createQuickLogTransaction: "readonly",
+        updateQuickLogTransaction: "readonly",
+        softDeleteQuickLogTransaction: "readonly",
         getRecentTransactionRecords: "readonly",
+        replaceTransactionRecord_: "readonly",
         transactionToSheetRow: "readonly",
         sheetRowsToObjects: "readonly",
         getSettingValue_: "readonly",
         getQuickLogBootstrap: "readonly",
         createTransaction: "readonly",
+        updateTransaction: "readonly",
+        softDeleteTransaction: "readonly",
         getRecentTransactions: "readonly"
       }
     },
@@ -69,7 +74,7 @@ export default [
         "warn",
         {
           "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|setupWorkbook|getWorkbookSetupStatus|getQuickLogBootstrap|createTransaction|getRecentTransactions|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames|buildWorkbookSetupPlan|getWorkbookSetupSheetNames|buildQuickLogBootstrapData|createQuickLogTransaction|getRecentTransactionRecords|transactionToSheetRow|sheetRowsToObjects)$"
+          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|setupWorkbook|getWorkbookSetupStatus|getQuickLogBootstrap|createTransaction|updateTransaction|softDeleteTransaction|getRecentTransactions|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames|buildWorkbookSetupPlan|getWorkbookSetupSheetNames|buildQuickLogBootstrapData|createQuickLogTransaction|updateQuickLogTransaction|softDeleteQuickLogTransaction|getRecentTransactionRecords|replaceTransactionRecord_|transactionToSheetRow|sheetRowsToObjects)$"
         }
       ],
       "no-undef": "error"

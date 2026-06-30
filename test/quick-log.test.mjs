@@ -232,6 +232,30 @@ function seedAccounts(spreadsheet) {
   ]);
 }
 
+function seedTransaction(spreadsheet, overrides = {}) {
+  const transaction = context.normalizeTransaction(
+    {
+      "Transaction ID": "EXP-ACTIVE",
+      Type: "Expense",
+      Date: "2026-06-30",
+      Amount: 100,
+      "Tier 1": "Food & Dining",
+      "Tier 2": "Eating Out",
+      Account: "cash-wallet",
+      Memo: "Original memo",
+      ...overrides
+    },
+    { now: "2026-06-30T12:00:00.000Z" }
+  );
+
+  spreadsheet
+    .getSheetByName("Transactions")
+    .getRange(2, 1, 1, context.TRANSACTION_HEADERS.length)
+    .setValues([context.transactionToSheetRow(transaction)]);
+
+  return transaction;
+}
+
 test("buildQuickLogBootstrapData returns active references and recent non-deleted transactions", () => {
   const workbook = context.buildMockWorkbook();
   const sheets = Object.fromEntries(
@@ -344,6 +368,88 @@ test("createQuickLogTransaction rejects invalid transfer input", () => {
   assert.match(result.errors.join(" "), /must be different/);
 });
 
+test("updateQuickLogTransaction edits an existing transaction while preserving ID and Created At", () => {
+  const existing = context.normalizeTransaction(
+    {
+      "Transaction ID": "EXP-EDIT",
+      Type: "Expense",
+      Date: "2026-06-29",
+      Amount: 100,
+      "Tier 1": "Food & Dining",
+      "Tier 2": "Eating Out",
+      Account: "cash-wallet",
+      Memo: "Before"
+    },
+    { now: "2026-06-29T10:00:00.000Z" }
+  );
+  const result = context.updateQuickLogTransaction(
+    "EXP-EDIT",
+    {
+      Amount: 125,
+      Memo: "After",
+      "Transaction ID": "SHOULD-NOT-CHANGE"
+    },
+    [existing],
+    { now: "2026-06-30T12:00:00.000Z" }
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.transaction["Transaction ID"], "EXP-EDIT");
+  assert.equal(result.transaction["Created At"], "2026-06-29T10:00:00.000Z");
+  assert.equal(result.transaction["Updated At"], "2026-06-30T12:00:00.000Z");
+  assert.equal(result.transaction.Amount, 125);
+  assert.equal(result.transaction.Memo, "After");
+});
+
+test("updateQuickLogTransaction rejects missing transactions and invalid edits", () => {
+  const existing = context.normalizeTransaction(
+    {
+      "Transaction ID": "EXP-EDIT",
+      Type: "Expense",
+      Date: "2026-06-29",
+      Amount: 100,
+      "Tier 1": "Food & Dining",
+      "Tier 2": "Eating Out",
+      Account: "cash-wallet"
+    },
+    { now: "2026-06-29T10:00:00.000Z" }
+  );
+  const missing = context.updateQuickLogTransaction("NOPE", { Amount: 125 }, [existing], {
+    now: "2026-06-30T12:00:00.000Z"
+  });
+  const invalid = context.updateQuickLogTransaction("EXP-EDIT", { Amount: 0 }, [existing], {
+    now: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(missing.ok, false);
+  assert.match(missing.errors.join(" "), /Transaction not found/);
+  assert.equal(invalid.ok, false);
+  assert.match(invalid.errors.join(" "), /Amount must be a positive number/);
+});
+
+test("softDeleteQuickLogTransaction marks a transaction without removing it", () => {
+  const existing = context.normalizeTransaction(
+    {
+      "Transaction ID": "EXP-DELETE",
+      Type: "Expense",
+      Date: "2026-06-29",
+      Amount: 100,
+      "Tier 1": "Food & Dining",
+      "Tier 2": "Eating Out",
+      Account: "cash-wallet"
+    },
+    { now: "2026-06-29T10:00:00.000Z" }
+  );
+  const result = context.softDeleteQuickLogTransaction("EXP-DELETE", [existing], {
+    now: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.transaction["Deleted?"], true);
+  assert.equal(result.transaction["Deleted At"], "2026-06-30T12:00:00.000Z");
+  assert.equal(result.transaction["Updated At"], "2026-06-30T12:00:00.000Z");
+});
+
 test("createTransaction appends to real Transactions and returns updated recent logs", () => {
   const spreadsheet = createSetupWorkbook();
   seedAccounts(spreadsheet);
@@ -368,6 +474,69 @@ test("createTransaction appends to real Transactions and returns updated recent 
   assert.equal(transactions.values[1][5], 85);
   assert.equal(result.recentTransactions.length, 1);
   assert.equal(result.recentTransactions[0].Memo, "Quick log backend test");
+});
+
+test("updateTransaction updates the matching real Transactions row", () => {
+  const spreadsheet = createSetupWorkbook();
+  seedTransaction(spreadsheet);
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.updateTransaction("EXP-ACTIVE", {
+    Amount: 150,
+    Memo: "Updated memo"
+  });
+  const transactions = spreadsheet.getSheetByName("Transactions");
+
+  assert.equal(result.ok, true);
+  assert.equal(context.flushCount, 1);
+  assert.equal(transactions.values.length, 2);
+  assert.equal(transactions.values[1][0], "EXP-ACTIVE");
+  assert.equal(transactions.values[1][5], 150);
+  assert.equal(transactions.values[1][14], "Updated memo");
+  assert.equal(result.recentTransactions[0].Amount, 150);
+});
+
+test("updateTransaction returns a validation error without changing the row", () => {
+  const spreadsheet = createSetupWorkbook();
+  seedTransaction(spreadsheet);
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.updateTransaction("EXP-ACTIVE", {
+    Amount: 0
+  });
+  const transactions = spreadsheet.getSheetByName("Transactions");
+
+  assert.equal(result.ok, false);
+  assert.equal(transactions.values[1][5], 100);
+});
+
+test("softDeleteTransaction marks the real row and removes it from recent logs", () => {
+  const spreadsheet = createSetupWorkbook();
+  seedTransaction(spreadsheet);
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.softDeleteTransaction("EXP-ACTIVE");
+  const transactions = spreadsheet.getSheetByName("Transactions");
+
+  assert.equal(result.ok, true);
+  assert.equal(context.flushCount, 1);
+  assert.equal(transactions.values.length, 2);
+  assert.equal(transactions.values[1][16], true);
+  assert.equal(result.recentTransactions.length, 0);
+});
+
+test("softDeleteTransaction returns a missing ID error without changing rows", () => {
+  const spreadsheet = createSetupWorkbook();
+  seedTransaction(spreadsheet);
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.softDeleteTransaction("MISSING-ID");
+  const transactions = spreadsheet.getSheetByName("Transactions");
+
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join(" "), /Transaction not found/);
+  assert.equal(transactions.values.length, 2);
+  assert.equal(transactions.values[1][16], false);
 });
 
 test("getQuickLogBootstrap reads real workbook data without creating transactions", () => {

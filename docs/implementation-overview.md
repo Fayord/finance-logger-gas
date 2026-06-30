@@ -101,13 +101,17 @@ The selected workbook design is Approach 1:
 - Added GAS backend functions:
   - `getQuickLogBootstrap()`
   - `createTransaction(input)`
+  - `updateTransaction(transactionId, input)`
+  - `softDeleteTransaction(transactionId)`
   - `getRecentTransactions(limit)`
 - `getQuickLogBootstrap()` reads active accounts, categories, presets, settings, and recent transactions.
 - `createTransaction(input)` validates by transaction type, normalizes amount as positive, creates a unique ID, and appends only to the real `Transactions` sheet.
+- `updateTransaction(transactionId, input)` validates edits, preserves the original ID and created timestamp, and updates the matching real row.
+- `softDeleteTransaction(transactionId)` marks `Deleted?` and `Deleted At` without removing the row.
 - `getRecentTransactions(limit)` returns recent non-deleted rows only.
 - Added a read-only UI button:
   - `Check quick log bootstrap`
-- Added local tests for Quick Log bootstrap, transaction creation, validation, append behavior, and hidden soft-deleted rows.
+- Added local tests for Quick Log bootstrap, transaction create/edit/delete, validation, append/update behavior, and hidden soft-deleted rows.
 
 ### Apps Script Sync
 
@@ -163,18 +167,19 @@ Local tests cover:
 
 ### Phase 2: Edit And Soft Delete Backend
 
-After create/list is solid:
+Status: implemented.
+
+Implemented functions:
 
 - `updateTransaction(transactionId, input)`
 - `softDeleteTransaction(transactionId)`
-- edit validation by transaction type
-- confirmation-safe delete behavior
-- recent list refresh after edit/delete
 
-Local tests should cover:
+Local tests cover:
 
 - updating an existing row by transaction ID
+- preserving `Transaction ID` and `Created At` during edits
 - refusing updates to missing IDs
+- refusing invalid edits
 - soft delete sets `Deleted? = TRUE` and `Deleted At`
 - deleted transactions stay in the sheet but disappear from normal recent logs
 
@@ -288,6 +293,6 @@ The mock seeder should never modify non-mock tabs.
 
 ## Recommended Next Action
 
-Continue with Phase 2: edit and soft delete backend.
+Continue with Phase 3: mobile Quick Log UI in Apps Script.
 
-This is the best next step because the Quick Log UI needs create, edit, and delete operations to feel complete. After those backend functions are stable, the mobile UI can connect to a real tested API.
+This is the best next step because the backend now has the create, edit, delete, bootstrap, and recent-log functions the first real UI needs.

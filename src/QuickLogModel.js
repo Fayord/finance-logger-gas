@@ -46,6 +46,67 @@ function createQuickLogTransaction(input, existingTransactions, options) {
   };
 }
 
+function updateQuickLogTransaction(transactionId, input, existingTransactions, options) {
+  var existingTransaction = findTransactionById_(existingTransactions, transactionId);
+  var now = options && options.now ? options.now : new Date().toISOString();
+
+  if (!existingTransaction) {
+    return {
+      ok: false,
+      errors: ["Transaction not found: " + transactionId],
+      transaction: null
+    };
+  }
+
+  var transactionInput = Object.assign({}, existingTransaction, input || {}, {
+    "Transaction ID": existingTransaction["Transaction ID"],
+    "Created At": existingTransaction["Created At"],
+    "Deleted?": existingTransaction["Deleted?"],
+    "Deleted At": existingTransaction["Deleted At"]
+  });
+  var transaction = normalizeTransaction(transactionInput, { now: now });
+  var validation = validateTransaction(transaction);
+
+  if (!validation.valid) {
+    return {
+      ok: false,
+      errors: validation.errors,
+      transaction: transaction
+    };
+  }
+
+  return {
+    ok: true,
+    transaction: transaction,
+    row: transactionToSheetRow(transaction)
+  };
+}
+
+function softDeleteQuickLogTransaction(transactionId, existingTransactions, options) {
+  var existingTransaction = findTransactionById_(existingTransactions, transactionId);
+  var now = options && options.now ? options.now : new Date().toISOString();
+
+  if (!existingTransaction) {
+    return {
+      ok: false,
+      errors: ["Transaction not found: " + transactionId],
+      transaction: null
+    };
+  }
+
+  var transaction = Object.assign({}, existingTransaction, {
+    "Updated At": now,
+    "Deleted?": true,
+    "Deleted At": existingTransaction["Deleted At"] || now
+  });
+
+  return {
+    ok: true,
+    transaction: transaction,
+    row: transactionToSheetRow(transaction)
+  };
+}
+
 function getRecentTransactionRecords(transactions, limit) {
   var normalizedLimit = Math.max(Number(limit || 20), 1);
 
@@ -58,6 +119,12 @@ function getRecentTransactionRecords(transactions, limit) {
       return getTransactionSortValue_(right) - getTransactionSortValue_(left);
     })
     .slice(0, normalizedLimit);
+}
+
+function replaceTransactionRecord_(transactions, replacement) {
+  return transactions.map(function (transaction) {
+    return transaction["Transaction ID"] === replacement["Transaction ID"] ? replacement : transaction;
+  });
 }
 
 function transactionToSheetRow(transaction) {
@@ -75,6 +142,12 @@ function sheetRowsToObjects(rows, headers) {
     });
 
     return record;
+  });
+}
+
+function findTransactionById_(transactions, transactionId) {
+  return transactions.find(function (transaction) {
+    return transaction["Transaction ID"] === transactionId;
   });
 }
 

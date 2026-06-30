@@ -68,6 +68,104 @@ function createTransaction(input) {
   }
 }
 
+function updateTransaction(transactionId, input) {
+  try {
+    var spreadsheet = getFinanceSpreadsheet_();
+
+    if (!spreadsheet) {
+      return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
+    }
+
+    ensureQuickLogSheets_(spreadsheet);
+
+    var transactionsSheet = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var existingRows = readSheetObjectsWithRowNumbers_(transactionsSheet, TRANSACTION_HEADERS);
+    var existingTransactions = existingRows.map(function (row) {
+      return row.record;
+    });
+    var targetRow = existingRows.find(function (row) {
+      return row.record["Transaction ID"] === transactionId;
+    });
+    var result = updateQuickLogTransaction(transactionId, input || {}, existingTransactions, {
+      now: new Date().toISOString()
+    });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        message: "Transaction update failed.",
+        errors: result.errors,
+        transaction: result.transaction
+      };
+    }
+
+    transactionsSheet.getRange(targetRow.rowNumber, 1, 1, TRANSACTION_HEADERS.length).setValues([result.row]);
+    SpreadsheetApp.flush();
+
+    return {
+      ok: true,
+      message: "Transaction updated.",
+      updatedAt: result.transaction["Updated At"],
+      transaction: result.transaction,
+      recentTransactions: getRecentTransactionRecords(
+        replaceTransactionRecord_(existingTransactions, result.transaction),
+        getRecentLogLimit_(spreadsheet)
+      )
+    };
+  } catch (error) {
+    return createQuickLogError_(error && error.message ? error.message : String(error));
+  }
+}
+
+function softDeleteTransaction(transactionId) {
+  try {
+    var spreadsheet = getFinanceSpreadsheet_();
+
+    if (!spreadsheet) {
+      return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
+    }
+
+    ensureQuickLogSheets_(spreadsheet);
+
+    var transactionsSheet = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var existingRows = readSheetObjectsWithRowNumbers_(transactionsSheet, TRANSACTION_HEADERS);
+    var existingTransactions = existingRows.map(function (row) {
+      return row.record;
+    });
+    var targetRow = existingRows.find(function (row) {
+      return row.record["Transaction ID"] === transactionId;
+    });
+    var result = softDeleteQuickLogTransaction(transactionId, existingTransactions, {
+      now: new Date().toISOString()
+    });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        message: "Transaction delete failed.",
+        errors: result.errors,
+        transaction: result.transaction
+      };
+    }
+
+    transactionsSheet.getRange(targetRow.rowNumber, 1, 1, TRANSACTION_HEADERS.length).setValues([result.row]);
+    SpreadsheetApp.flush();
+
+    return {
+      ok: true,
+      message: "Transaction deleted.",
+      deletedAt: result.transaction["Deleted At"],
+      transaction: result.transaction,
+      recentTransactions: getRecentTransactionRecords(
+        replaceTransactionRecord_(existingTransactions, result.transaction),
+        getRecentLogLimit_(spreadsheet)
+      )
+    };
+  } catch (error) {
+    return createQuickLogError_(error && error.message ? error.message : String(error));
+  }
+}
+
 function getRecentTransactions(limit) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
@@ -115,6 +213,12 @@ function readQuickLogWorkbookData_(spreadsheet) {
 }
 
 function readSheetObjects_(sheet, headers) {
+  return readSheetObjectsWithRowNumbers_(sheet, headers).map(function (row) {
+    return row.record;
+  });
+}
+
+function readSheetObjectsWithRowNumbers_(sheet, headers) {
   if (!sheet) {
     return [];
   }
@@ -127,11 +231,18 @@ function readSheetObjects_(sheet, headers) {
 
   var rows = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
 
-  return sheetRowsToObjects(rows, headers).filter(function (row) {
-    return Object.keys(row).some(function (key) {
-      return row[key] !== "";
+  return sheetRowsToObjects(rows, headers)
+    .map(function (record, index) {
+      return {
+        rowNumber: index + 2,
+        record: record
+      };
+    })
+    .filter(function (row) {
+      return Object.keys(row.record).some(function (key) {
+        return row.record[key] !== "";
+      });
     });
-  });
 }
 
 function ensureQuickLogSheets_(spreadsheet) {
