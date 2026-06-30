@@ -211,6 +211,10 @@ function getRecentMockTransactions(limit) {
 }
 
 function runMockQuickLogSmokeTest() {
+  return runMockQuickLogCheck();
+}
+
+function runMockQuickLogCheck() {
   try {
     var spreadsheet = getFinanceSpreadsheet_();
 
@@ -280,7 +284,13 @@ function runMockQuickLogSmokeTest() {
             return transaction["Transaction ID"] === transactionId;
           })
       },
-      finalTransaction: deleteResult.transaction
+      finalTransaction: {
+        id: deleteResult.transaction["Transaction ID"],
+        amount: deleteResult.transaction.Amount,
+        memo: deleteResult.transaction.Memo,
+        deleted: Boolean(deleteResult.transaction["Deleted?"]),
+        deletedAt: deleteResult.transaction["Deleted At"]
+      }
     };
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));

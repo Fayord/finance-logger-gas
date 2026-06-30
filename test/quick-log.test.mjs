@@ -687,13 +687,13 @@ test("getRecentMockTransactions hides deleted mock rows", () => {
   );
 });
 
-test("runMockQuickLogSmokeTest verifies mock create edit delete without changing real Transactions", () => {
+test("runMockQuickLogCheck verifies mock create edit delete without changing real Transactions", () => {
   const spreadsheet = createSetupWorkbook();
   seedTransaction(spreadsheet);
   context.flushCount = 0;
   context.getFinanceSpreadsheet_ = () => spreadsheet;
 
-  const result = context.runMockQuickLogSmokeTest();
+  const result = context.runMockQuickLogCheck();
   const realTransactions = spreadsheet.getSheetByName("Transactions");
   const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
 
@@ -708,10 +708,21 @@ test("runMockQuickLogSmokeTest verifies mock create edit delete without changing
   assert.equal(result.steps.update, true);
   assert.equal(result.steps.softDelete, true);
   assert.equal(result.steps.deletedHiddenFromRecent, true);
-  assert.equal(result.finalTransaction.Memo, "Automated mock smoke test edited");
-  assert.equal(result.finalTransaction["Deleted?"], true);
+  assert.equal(result.finalTransaction.memo, "Automated mock smoke test edited");
+  assert.equal(result.finalTransaction.deleted, true);
   assert.equal(
     mockTransactions.values.some((row) => row[0] === result.transactionId),
     true
   );
+});
+
+test("runMockQuickLogSmokeTest remains a backwards-compatible alias", () => {
+  const spreadsheet = createSetupWorkbook();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.runMockQuickLogSmokeTest();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "mock");
+  assert.equal(result.steps.deletedHiddenFromRecent, true);
 });

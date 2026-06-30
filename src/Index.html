@@ -691,7 +691,7 @@
             <button class="secondary-button" type="button" data-admin-action="getMockQuickLogBootstrap">Check mock quick log</button>
             <button class="secondary-button" type="button" data-admin-action="seedMockWorkbook">Seed mock workbook</button>
             <button class="secondary-button" type="button" data-admin-action="getMockWorkbookStatus">Check mock workbook</button>
-            <button class="secondary-button" type="button" data-admin-action="runMockQuickLogSmokeTest">Run mock smoke test</button>
+            <button class="secondary-button" type="button" data-admin-action="runMockQuickLogCheck">Run mock smoke test</button>
           </div>
           <pre class="admin-output" id="adminOutput">No workbook tool run yet.</pre>
         </div>
@@ -1150,10 +1150,13 @@
             action === "seedMockWorkbook" || action === "setupWorkbook" ? "Working..." : "Checking...";
           try {
             const result = await gasCall(action);
+            if (result === null || result === undefined) {
+              throw new Error(`${action} returned ${result}. The deployed Apps Script may be stale or the function returned a non-serializable value.`);
+            }
             els.adminOutput.textContent = JSON.stringify(result, null, 2);
             if (
               (action === "setupWorkbook" && state.mode === "real") ||
-              ((action === "seedMockWorkbook" || action === "runMockQuickLogSmokeTest") && state.mode === "mock")
+              ((action === "seedMockWorkbook" || action === "runMockQuickLogCheck") && state.mode === "mock")
             ) {
               loadBootstrap();
             }
