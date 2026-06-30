@@ -95,6 +95,20 @@ The selected workbook design is Approach 1:
   - refuses mock or unknown sheet names
 - Added local tests for safe setup behavior.
 
+### Quick Log Backend
+
+- Added pure Quick Log helpers for local testing.
+- Added GAS backend functions:
+  - `getQuickLogBootstrap()`
+  - `createTransaction(input)`
+  - `getRecentTransactions(limit)`
+- `getQuickLogBootstrap()` reads active accounts, categories, presets, settings, and recent transactions.
+- `createTransaction(input)` validates by transaction type, normalizes amount as positive, creates a unique ID, and appends only to the real `Transactions` sheet.
+- `getRecentTransactions(limit)` returns recent non-deleted rows only.
+- Added a read-only UI button:
+  - `Check quick log bootstrap`
+- Added local tests for Quick Log bootstrap, transaction creation, validation, append behavior, and hidden soft-deleted rows.
+
 ### Apps Script Sync
 
 - Source has been pushed to the configured Apps Script project with `npm run gas:push:force`.
@@ -120,9 +134,9 @@ Action needed eventually:
 
 ### Phase 1: Quick Log Backend
 
-Implement the real transaction backend before building the full UI.
+Status: implemented for create/list/bootstrap.
 
-Planned functions:
+Implemented functions:
 
 - `getQuickLogBootstrap()`
   - reads active accounts, categories, presets, settings, and recent transactions
@@ -136,11 +150,12 @@ Planned functions:
 - `getRecentTransactions(limit)`
   - returns recent non-deleted transactions
 
-Local tests should cover:
+Local tests cover:
 
 - expense creation
 - income creation
 - transfer creation
+- transaction validation by type
 - missing required fields
 - positive amount normalization
 - deleted rows hidden from recent list
@@ -273,6 +288,6 @@ The mock seeder should never modify non-mock tabs.
 
 ## Recommended Next Action
 
-Continue with Phase 1: Quick Log backend.
+Continue with Phase 2: edit and soft delete backend.
 
-This is the best next step because it creates the real app behavior while still being locally testable. The UI can then connect to stable backend functions instead of being built on uncertain spreadsheet operations.
+This is the best next step because the Quick Log UI needs create, edit, and delete operations to feel complete. After those backend functions are stable, the mobile UI can connect to a real tested API.

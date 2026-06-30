@@ -36,6 +36,8 @@ export default [
         validateTransaction: "readonly",
         buildTransactionViews: "readonly",
         calculateBalances: "readonly",
+        toBoolean: "readonly",
+        createLocalTransactionId: "readonly",
         buildMockWorkbook: "readonly",
         getMockWorkbookSheetNames: "readonly",
         MOCK_EXPENSE_CATEGORIES: "readonly",
@@ -49,7 +51,17 @@ export default [
         seedMockWorkbook: "readonly",
         getMockWorkbookStatus: "readonly",
         setupWorkbook: "readonly",
-        getWorkbookSetupStatus: "readonly"
+        getWorkbookSetupStatus: "readonly",
+        getSpreadsheetSummary_: "readonly",
+        buildQuickLogBootstrapData: "readonly",
+        createQuickLogTransaction: "readonly",
+        getRecentTransactionRecords: "readonly",
+        transactionToSheetRow: "readonly",
+        sheetRowsToObjects: "readonly",
+        getSettingValue_: "readonly",
+        getQuickLogBootstrap: "readonly",
+        createTransaction: "readonly",
+        getRecentTransactions: "readonly"
       }
     },
     rules: {
@@ -57,7 +69,7 @@ export default [
         "warn",
         {
           "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|setupWorkbook|getWorkbookSetupStatus|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames|buildWorkbookSetupPlan|getWorkbookSetupSheetNames)$"
+          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|setupWorkbook|getWorkbookSetupStatus|getQuickLogBootstrap|createTransaction|getRecentTransactions|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames|buildWorkbookSetupPlan|getWorkbookSetupSheetNames|buildQuickLogBootstrapData|createQuickLogTransaction|getRecentTransactionRecords|transactionToSheetRow|sheetRowsToObjects)$"
         }
       ],
       "no-undef": "error"
