@@ -245,6 +245,13 @@ Expected checks and sync commands are:
 - `npm run gas:pull` before local work when remote Apps Script may have changed
 - `npm run gas:push` after local Apps Script changes are verified
 
+Commit workflow:
+
+- Commit frequently after each complete, verified unit of work.
+- Run `npm run check` before each commit once the Node/clasp scaffold exists.
+- Commit local source before and after GAS sync work when the sync changes source files, so Git remains the code source of truth.
+- Do not leave verified source changes uncommitted when the user asks for implementation plus commit.
+
 If Apps Script browser-editor changes happen, pull them back locally immediately and commit them.
 
 Use pure helpers in `src/` plus mock workbook fixtures under `test/` for local verification. Keep SpreadsheetApp access behind thin adapters so business logic can be tested before pushing to the real Apps Script project.

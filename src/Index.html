@@ -13,35 +13,41 @@
 
       <section>
         <h2>Google Sheet Connection</h2>
-        <button type="button" id="connection-check-button">Check connection</button>
-        <pre id="connection-result">Not checked yet.</pre>
+        <button type="button" data-action="getConnectionStatus">Check connection</button>
+        <button type="button" data-action="seedMockWorkbook">Seed mock workbook</button>
+        <button type="button" data-action="getMockWorkbookStatus">Check mock workbook</button>
+        <pre id="result">Not checked yet.</pre>
       </section>
     </main>
 
     <script>
-      const button = document.getElementById("connection-check-button");
-      const result = document.getElementById("connection-result");
+      const buttons = document.querySelectorAll("[data-action]");
+      const result = document.getElementById("result");
 
-      function renderConnectionStatus(status) {
+      function renderStatus(status) {
         result.textContent = JSON.stringify(status, null, 2);
       }
 
-      button.addEventListener("click", () => {
-        result.textContent = "Checking...";
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
 
-        google.script.run
-          .withSuccessHandler(renderConnectionStatus)
-          .withFailureHandler((error) => {
-            result.textContent = JSON.stringify(
-              {
-                ok: false,
-                message: error && error.message ? error.message : String(error)
-              },
-              null,
-              2
-            );
-          })
-          .getConnectionStatus();
+          result.textContent = action === "seedMockWorkbook" ? "Seeding..." : "Checking...";
+
+          google.script.run
+            .withSuccessHandler(renderStatus)
+            .withFailureHandler((error) => {
+              result.textContent = JSON.stringify(
+                {
+                  ok: false,
+                  message: error && error.message ? error.message : String(error)
+                },
+                null,
+                2
+              );
+            })
+            [action]();
+        });
       });
     </script>
   </body>

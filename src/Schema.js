@@ -76,3 +76,57 @@ var VIEW_SHEETS_BY_TYPE = Object.freeze({
   Income: FINANCE_SHEETS.INCOME_VIEW,
   Transfer: FINANCE_SHEETS.TRANSFERS_VIEW
 });
+
+var CATEGORY_HEADERS = Object.freeze([
+  "Tier 1",
+  "Tier 2",
+  "Example Memo / Note",
+  "Active?",
+  "Sort Order"
+]);
+
+var INCOME_CATEGORY_HEADERS = Object.freeze([
+  "Category",
+  "Default Taxable?",
+  "Active?",
+  "Sort Order"
+]);
+
+var TRANSFER_CATEGORY_HEADERS = Object.freeze(["Category", "Active?", "Sort Order"]);
+
+var PRESET_HEADERS = Object.freeze([
+  "Preset ID",
+  "Preset Name",
+  "Type",
+  "Amount",
+  "Tier 1",
+  "Tier 2",
+  "Income Category",
+  "Transfer Category",
+  "Account",
+  "From Account",
+  "To Account",
+  "Taxable?",
+  "Tax Deduction Status",
+  "Memo",
+  "Active?",
+  "Sort Order"
+]);
+
+var SETTING_HEADERS = Object.freeze(["Key", "Value", "Notes"]);
+
+var MOCK_SHEET_PREFIX = "Mock_";
+
+var MOCK_FINANCE_SHEETS = Object.freeze({
+  TRANSACTIONS: "Mock_Transactions",
+  EXPENSES_VIEW: "Mock_Expenses_View",
+  INCOME_VIEW: "Mock_Income_View",
+  TRANSFERS_VIEW: "Mock_Transfers_View",
+  ACCOUNTS: "Mock_Accounts",
+  BALANCES: "Mock_Balances",
+  EXPENSE_CATEGORIES: "Mock_Expense_Categories",
+  INCOME_CATEGORIES: "Mock_Income_Categories",
+  TRANSFER_CATEGORIES: "Mock_Transfer_Categories",
+  PRESETS: "Mock_Presets",
+  SETTINGS: "Mock_Settings"
+});

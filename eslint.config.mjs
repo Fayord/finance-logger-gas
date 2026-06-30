@@ -24,12 +24,24 @@ export default [
         TRANSACTION_HEADERS: "readonly",
         ACCOUNT_HEADERS: "readonly",
         BALANCE_HEADERS: "readonly",
+        CATEGORY_HEADERS: "readonly",
+        INCOME_CATEGORY_HEADERS: "readonly",
+        TRANSFER_CATEGORY_HEADERS: "readonly",
+        PRESET_HEADERS: "readonly",
+        SETTING_HEADERS: "readonly",
+        MOCK_SHEET_PREFIX: "readonly",
+        MOCK_FINANCE_SHEETS: "readonly",
         VIEW_SHEETS_BY_TYPE: "readonly",
         normalizeTransaction: "readonly",
         validateTransaction: "readonly",
         buildTransactionViews: "readonly",
         calculateBalances: "readonly",
-        getConnectionStatus: "readonly"
+        buildMockWorkbook: "readonly",
+        getMockWorkbookSheetNames: "readonly",
+        getConnectionStatus: "readonly",
+        getFinanceSpreadsheet_: "readonly",
+        seedMockWorkbook: "readonly",
+        getMockWorkbookStatus: "readonly"
       }
     },
     rules: {
@@ -37,7 +49,7 @@ export default [
         "warn",
         {
           "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances)$"
+          "varsIgnorePattern": "^(doGet|doPost|onOpen|onEdit|include|getConnectionStatus|seedMockWorkbook|getMockWorkbookStatus|FINANCE_SHEETS|TRANSACTION_TYPES|TRANSACTION_HEADERS|ACCOUNT_HEADERS|BALANCE_HEADERS|CATEGORY_HEADERS|INCOME_CATEGORY_HEADERS|TRANSFER_CATEGORY_HEADERS|PRESET_HEADERS|SETTING_HEADERS|MOCK_SHEET_PREFIX|MOCK_FINANCE_SHEETS|VIEW_SHEETS_BY_TYPE|normalizeTransaction|validateTransaction|buildTransactionViews|calculateBalances|MOCK_EXPENSE_CATEGORIES|buildMockWorkbook|getMockWorkbookSheetNames)$"
         }
       ],
       "no-undef": "error"
