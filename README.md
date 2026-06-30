@@ -58,3 +58,7 @@ FINANCE_LOGGER_SHEET_ID=<your Google Sheet ID>
 ```
 
 The real `.clasp.json` is local-only and ignored by Git.
+
+## Project Status
+
+See `docs/implementation-overview.md` for the current implementation status, next phases, blockers, and the real configuration data needed later.
