@@ -122,6 +122,7 @@ The selected workbook design is Approach 1:
   - real mode writes to `Transactions`
   - mock mode writes only to `Mock_Transactions`
   - mock mode lets create/edit/delete be tested before real accounts and presets are configured
+- Added a `Run mock smoke test` workbook tool that seeds mock tabs, creates a mock transaction, edits it, soft-deletes it, and verifies the real `Transactions` row count did not change.
 - Kept workbook setup/mock/diagnostic controls in a secondary `Workbook tools` panel.
 - Added `PRODUCT.md` so future UI work has a stable product-register design context.
 
@@ -209,6 +210,7 @@ Implemented UI:
 - delete recent log with confirmation
 - real/mock mode switch
 - mock-mode create/edit/delete against `Mock_Transactions`
+- one-click mock Quick Log smoke test
 
 Remaining Phase 3 polish:
 
@@ -305,11 +307,12 @@ If you want to review the current safe workbook pieces:
 4. Review only the `Mock_...` tabs in the Google Sheet.
 5. Click `Check mock workbook`.
 6. Switch the Quick Log page to `Mock`.
-7. Create a sample expense, income, and transfer.
-8. Edit one mock recent log.
-9. Delete one mock recent log and confirm it is soft-deleted.
-10. Click `Setup real workbook` only when you are comfortable creating the real empty app tabs.
-11. Click `Check real workbook`.
+7. Click `Run mock smoke test` for an automated mock create/edit/delete check.
+8. Create a sample expense, income, and transfer manually in `Mock` mode.
+9. Edit one mock recent log.
+10. Delete one mock recent log and confirm it is soft-deleted.
+11. Click `Setup real workbook` only when you are comfortable creating the real empty app tabs.
+12. Click `Check real workbook`.
 
 The mock seeder and mock Quick Log mode should never modify non-mock tabs.
 

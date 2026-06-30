@@ -210,6 +210,83 @@ function getRecentMockTransactions(limit) {
   return getRecentTransactionsForSheets_(limit, MOCK_FINANCE_SHEETS, "mock");
 }
 
+function runMockQuickLogSmokeTest() {
+  try {
+    var spreadsheet = getFinanceSpreadsheet_();
+
+    if (!spreadsheet) {
+      return createQuickLogError_("No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.");
+    }
+
+    var realTransactions = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var realRowCountBefore = realTransactions ? realTransactions.getLastRow() : null;
+    var seedResult = seedMockWorkbook();
+
+    if (!seedResult.ok) {
+      return seedResult;
+    }
+
+    var createResult = createMockTransaction({
+      Type: TRANSACTION_TYPES.EXPENSE,
+      Date: new Date().toISOString().slice(0, 10),
+      Amount: 42.5,
+      "Tier 1": "Food & Dining",
+      "Tier 2": "Sweet Drinks & Snacks",
+      Account: "cash-wallet",
+      Memo: "Automated mock smoke test"
+    });
+
+    if (!createResult.ok) {
+      return createResult;
+    }
+
+    var transactionId = createResult.transaction["Transaction ID"];
+    var updateResult = updateMockTransaction(transactionId, {
+      Amount: 43,
+      Memo: "Automated mock smoke test edited"
+    });
+
+    if (!updateResult.ok) {
+      return updateResult;
+    }
+
+    var deleteResult = softDeleteMockTransaction(transactionId);
+
+    if (!deleteResult.ok) {
+      return deleteResult;
+    }
+
+    var recentResult = getRecentMockTransactions(20);
+    var realRowCountAfter = realTransactions ? realTransactions.getLastRow() : null;
+
+    return {
+      ok: true,
+      mode: "mock",
+      message: "Mock Quick Log smoke test passed. Real Transactions was not edited.",
+      checkedAt: new Date().toISOString(),
+      spreadsheet: getSpreadsheetSummary_(spreadsheet),
+      transactionId: transactionId,
+      realTransactionsRowCountBefore: realRowCountBefore,
+      realTransactionsRowCountAfter: realRowCountAfter,
+      realTransactionsUntouched: realRowCountBefore === realRowCountAfter,
+      steps: {
+        seed: seedResult.ok,
+        create: createResult.ok,
+        update: updateResult.ok,
+        softDelete: deleteResult.ok,
+        deletedHiddenFromRecent:
+          recentResult.ok &&
+          !recentResult.transactions.some(function (transaction) {
+            return transaction["Transaction ID"] === transactionId;
+          })
+      },
+      finalTransaction: deleteResult.transaction
+    };
+  } catch (error) {
+    return createQuickLogError_(error && error.message ? error.message : String(error));
+  }
+}
+
 function getRecentTransactionsForSheets_(limit, sheetNames, mode) {
   try {
     var spreadsheet = getFinanceSpreadsheet_();

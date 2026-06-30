@@ -691,6 +691,7 @@
             <button class="secondary-button" type="button" data-admin-action="getMockQuickLogBootstrap">Check mock quick log</button>
             <button class="secondary-button" type="button" data-admin-action="seedMockWorkbook">Seed mock workbook</button>
             <button class="secondary-button" type="button" data-admin-action="getMockWorkbookStatus">Check mock workbook</button>
+            <button class="secondary-button" type="button" data-admin-action="runMockQuickLogSmokeTest">Run mock smoke test</button>
           </div>
           <pre class="admin-output" id="adminOutput">No workbook tool run yet.</pre>
         </div>
@@ -1152,7 +1153,7 @@
             els.adminOutput.textContent = JSON.stringify(result, null, 2);
             if (
               (action === "setupWorkbook" && state.mode === "real") ||
-              (action === "seedMockWorkbook" && state.mode === "mock")
+              ((action === "seedMockWorkbook" || action === "runMockQuickLogSmokeTest") && state.mode === "mock")
             ) {
               loadBootstrap();
             }

@@ -686,3 +686,32 @@ test("getRecentMockTransactions hides deleted mock rows", () => {
     false
   );
 });
+
+test("runMockQuickLogSmokeTest verifies mock create edit delete without changing real Transactions", () => {
+  const spreadsheet = createSetupWorkbook();
+  seedTransaction(spreadsheet);
+  context.flushCount = 0;
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.runMockQuickLogSmokeTest();
+  const realTransactions = spreadsheet.getSheetByName("Transactions");
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "mock");
+  assert.equal(result.realTransactionsUntouched, true);
+  assert.equal(result.realTransactionsRowCountBefore, 2);
+  assert.equal(result.realTransactionsRowCountAfter, 2);
+  assert.equal(realTransactions.values.length, 2);
+  assert.equal(result.steps.seed, true);
+  assert.equal(result.steps.create, true);
+  assert.equal(result.steps.update, true);
+  assert.equal(result.steps.softDelete, true);
+  assert.equal(result.steps.deletedHiddenFromRecent, true);
+  assert.equal(result.finalTransaction.Memo, "Automated mock smoke test edited");
+  assert.equal(result.finalTransaction["Deleted?"], true);
+  assert.equal(
+    mockTransactions.values.some((row) => row[0] === result.transactionId),
+    true
+  );
+});
