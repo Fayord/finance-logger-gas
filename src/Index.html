@@ -314,6 +314,11 @@
         grid-column: 1 / -1;
       }
 
+      .field.expense-category-field {
+        min-height: 238px;
+        align-content: start;
+      }
+
       label {
         color: var(--muted);
         font-size: 12px;
@@ -326,6 +331,215 @@
 
       .type-only.is-visible {
         display: grid;
+      }
+
+      .native-state-control {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .choice-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        min-height: 178px;
+      }
+
+      .category-choice {
+        min-height: 54px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 850;
+        line-height: 1.15;
+      }
+
+      .category-choice.is-active {
+        color: var(--expense);
+        background: var(--expense-soft);
+        border-color: oklch(0.72 0.14 28);
+      }
+
+      .category-choice-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        background: var(--surface-soft);
+        font-size: 14px;
+      }
+
+      .category-choice.is-active .category-choice-icon {
+        background: oklch(0.91 0.055 28);
+      }
+
+      .category-choice-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .picker-button {
+        width: 100%;
+        min-height: 58px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        text-align: left;
+      }
+
+      .picker-button-main {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+      }
+
+      .picker-button-value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .picker-button-meta {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .picker-arrow {
+        color: var(--subtle);
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .picker-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: none;
+        background: oklch(0.21 0.024 260 / 0.34);
+      }
+
+      .picker-backdrop.is-visible {
+        display: block;
+      }
+
+      .picker-sheet {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        z-index: 50;
+        width: min(100%, 620px);
+        max-height: min(78vh, 620px);
+        display: none;
+        grid-template-rows: auto auto 1fr;
+        transform: translateX(-50%);
+        border: 1px solid var(--line);
+        border-bottom: 0;
+        border-radius: 12px 12px 0 0;
+        background: var(--surface);
+        box-shadow: 0 -10px 24px oklch(0.21 0.024 260 / 0.14);
+        overflow: hidden;
+      }
+
+      .picker-sheet.is-visible {
+        display: grid;
+      }
+
+      .picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .picker-title {
+        font-size: 16px;
+        font-weight: 900;
+      }
+
+      .picker-subtitle {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .picker-search-wrap {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .picker-list {
+        display: grid;
+        gap: 8px;
+        min-height: 220px;
+        overflow: auto;
+        padding: 12px 14px calc(16px + env(safe-area-inset-bottom));
+      }
+
+      .picker-choice {
+        min-height: 52px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface-soft);
+        color: var(--ink);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        text-align: left;
+      }
+
+      .picker-choice.is-active {
+        color: var(--expense);
+        background: var(--expense-soft);
+        border-color: oklch(0.72 0.14 28);
+      }
+
+      .picker-choice strong,
+      .picker-choice span {
+        display: block;
+      }
+
+      .picker-choice strong {
+        font-size: 14px;
+      }
+
+      .picker-choice span {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .picker-check {
+        color: var(--expense);
+        font-weight: 900;
       }
 
       .presets {
@@ -575,13 +789,24 @@
           display: grid;
           grid-template-columns: 1fr;
         }
+
+        .field.expense-category-field {
+          min-height: 298px;
+        }
+
+        .choice-grid {
+          min-height: 238px;
+        }
       }
 
       @media (prefers-reduced-motion: no-preference) {
         button,
         input,
         select,
-        textarea {
+        textarea,
+        .category-choice,
+        .picker-button,
+        .picker-choice {
           transition:
             border-color 160ms ease-out,
             background-color 160ms ease-out,
@@ -648,13 +873,21 @@
               <input id="amountInput" name="Amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required>
             </div>
 
-            <div class="field type-only is-visible" data-visible-for="Expense">
-              <label for="expenseTier1Input">Tier 1</label>
-              <select id="expenseTier1Input"></select>
+            <div class="field full type-only is-visible expense-category-field" data-visible-for="Expense">
+              <label id="expenseTier1Label">Tier 1</label>
+              <select class="native-state-control" id="expenseTier1Input" aria-labelledby="expenseTier1Label" tabindex="-1"></select>
+              <div class="choice-grid" id="expenseTier1Grid" role="radiogroup" aria-labelledby="expenseTier1Label"></div>
             </div>
-            <div class="field type-only is-visible" data-visible-for="Expense">
-              <label for="expenseTier2Input">Tier 2</label>
-              <select id="expenseTier2Input"></select>
+            <div class="field full type-only is-visible" data-visible-for="Expense">
+              <label id="expenseTier2Label">Tier 2</label>
+              <select class="native-state-control" id="expenseTier2Input" aria-labelledby="expenseTier2Label" tabindex="-1"></select>
+              <button class="picker-button" id="expenseTier2Button" type="button" aria-haspopup="dialog">
+                <span class="picker-button-main">
+                  <span class="picker-button-value" id="expenseTier2Value">Select tier 2</span>
+                  <span class="picker-button-meta" id="expenseTier2Meta">Choose Tier 1 first</span>
+                </span>
+                <span class="picker-arrow" aria-hidden="true">&rsaquo;</span>
+              </button>
             </div>
 
             <div class="field type-only" data-visible-for="Income">
@@ -747,6 +980,21 @@
       </details>
     </main>
 
+    <div class="picker-backdrop" id="pickerBackdrop"></div>
+    <section class="picker-sheet" id="tier2Picker" role="dialog" aria-modal="true" aria-labelledby="tier2PickerTitle">
+      <div class="picker-header">
+        <div>
+          <p class="picker-title" id="tier2PickerTitle">Choose Tier 2</p>
+          <p class="picker-subtitle" id="tier2PickerSubtitle">Select a Tier 1 category first.</p>
+        </div>
+        <button class="link-button" type="button" id="closeTier2PickerButton">Close</button>
+      </div>
+      <div class="picker-search-wrap">
+        <input id="tier2SearchInput" type="search" placeholder="Search Tier 2 choices">
+      </div>
+      <div class="picker-list" id="tier2PickerList"></div>
+    </section>
+
     <script>
       const state = {
         mode: "real",
@@ -792,6 +1040,16 @@
         amount: document.getElementById("amountInput"),
         expenseTier1: document.getElementById("expenseTier1Input"),
         expenseTier2: document.getElementById("expenseTier2Input"),
+        expenseTier1Grid: document.getElementById("expenseTier1Grid"),
+        expenseTier2Button: document.getElementById("expenseTier2Button"),
+        expenseTier2Value: document.getElementById("expenseTier2Value"),
+        expenseTier2Meta: document.getElementById("expenseTier2Meta"),
+        tier2Picker: document.getElementById("tier2Picker"),
+        pickerBackdrop: document.getElementById("pickerBackdrop"),
+        tier2PickerSubtitle: document.getElementById("tier2PickerSubtitle"),
+        tier2SearchInput: document.getElementById("tier2SearchInput"),
+        tier2PickerList: document.getElementById("tier2PickerList"),
+        closeTier2PickerButton: document.getElementById("closeTier2PickerButton"),
         incomeCategory: document.getElementById("incomeCategoryInput"),
         transferCategory: document.getElementById("transferCategoryInput"),
         account: document.getElementById("accountInput"),
@@ -885,6 +1143,7 @@
         els.formMode.textContent = state.editId ? `Editing ${type}` : type;
         els.submitButton.dataset.type = type;
         els.submitButton.textContent = state.editId ? "Save changes" : `Log ${type.toLowerCase()}`;
+        renderExpenseCategoryControls();
       }
 
       function rowValue(row, key) {
@@ -893,6 +1152,18 @@
 
       function unique(values) {
         return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
+      }
+
+      function compactLabel(value) {
+        const words = String(value || "").split(/\s+/).filter(Boolean);
+        if (!words.length) {
+          return "";
+        }
+        return words
+          .slice(0, 2)
+          .map((word) => word[0])
+          .join("")
+          .toUpperCase();
       }
 
       function escapeHtml(value) {
@@ -955,6 +1226,103 @@
         ) {
           els.expenseTier2.value = "";
         }
+
+        renderExpenseTier2Button();
+      }
+
+      function renderExpenseTier1Buttons() {
+        const options = unique((state.bootstrap?.expenseCategories || []).map((row) => rowValue(row, "Tier 1")));
+
+        if (!options.length) {
+          els.expenseTier1Grid.innerHTML = '<p class="empty-line">No expense categories loaded yet.</p>';
+          return;
+        }
+
+        els.expenseTier1Grid.innerHTML = options
+          .map((name) => {
+            const isActive = name === els.expenseTier1.value;
+            return `
+              <button class="category-choice ${isActive ? "is-active" : ""}" type="button" role="radio" aria-checked="${String(
+                isActive
+              )}" data-expense-tier1="${escapeHtml(name)}">
+                <span class="category-choice-icon" aria-hidden="true">${escapeHtml(compactLabel(name))}</span>
+                <span class="category-choice-label">${escapeHtml(name)}</span>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function renderExpenseTier2Button() {
+        const tier1 = els.expenseTier1.value;
+        const tier2 = els.expenseTier2.value;
+        const count = expenseTier2OptionsForTier1(tier1).filter(Boolean).length;
+
+        els.expenseTier2Button.disabled = !tier1;
+        els.expenseTier2Value.textContent = tier2 || "Select tier 2";
+        els.expenseTier2Meta.textContent = tier1
+          ? `${count} choices under ${tier1}`
+          : "Choose Tier 1 first";
+      }
+
+      function renderExpenseCategoryControls() {
+        renderExpenseTier1Buttons();
+        renderExpenseTier2Options();
+      }
+
+      function selectExpenseTier1(tier1) {
+        setControlValue(els.expenseTier1, tier1);
+        renderExpenseTier2Options();
+        renderExpenseTier1Buttons();
+
+        openTier2Picker();
+      }
+
+      function openTier2Picker() {
+        if (state.type !== "Expense" || !els.expenseTier1.value) {
+          return;
+        }
+
+        els.tier2SearchInput.value = "";
+        els.tier2PickerSubtitle.textContent = `${els.expenseTier1.value} category choices`;
+        renderTier2PickerChoices();
+        els.pickerBackdrop.classList.add("is-visible");
+        els.tier2Picker.classList.add("is-visible");
+        setTimeout(() => els.tier2SearchInput.focus(), 80);
+      }
+
+      function closeTier2Picker() {
+        els.pickerBackdrop.classList.remove("is-visible");
+        els.tier2Picker.classList.remove("is-visible");
+      }
+
+      function renderTier2PickerChoices() {
+        const query = els.tier2SearchInput.value.trim().toLowerCase();
+        const choices = unique(expenseTier2OptionsForTier1(els.expenseTier1.value)).filter((name) =>
+          name.toLowerCase().includes(query)
+        );
+
+        if (!choices.length) {
+          els.tier2PickerList.innerHTML = '<p class="empty-line">No Tier 2 category found.</p>';
+          return;
+        }
+
+        els.tier2PickerList.innerHTML = choices
+          .map((name) => {
+            const isActive = name === els.expenseTier2.value;
+            return `
+              <button class="picker-choice ${isActive ? "is-active" : ""}" type="button" data-expense-tier2="${escapeHtml(
+                name
+              )}">
+                <span>
+                  <strong>${escapeHtml(name)}</strong>
+                  <span>Under ${escapeHtml(els.expenseTier1.value)}</span>
+                </span>
+                <span class="picker-check" aria-hidden="true">${isActive ? "&check;" : ""}</span>
+              </button>
+            `;
+          })
+          .join("");
       }
 
       function setControlValue(control, value) {
@@ -987,7 +1355,7 @@
           expenseCategories.map((row) => rowValue(row, "Tier 1")),
           "Select tier 1"
         );
-        renderExpenseTier2Options();
+        renderExpenseCategoryControls();
         fillSelect(
           "incomeCategoryInput",
           (state.bootstrap?.incomeCategories || []).map((row) => rowValue(row, "Category")),
@@ -1078,6 +1446,7 @@
         els.deduction.value = "No";
         els.editBanner.classList.remove("is-visible");
         setType(state.type);
+        renderExpenseCategoryControls();
         renderPresets();
         setStatus("Ready.");
       }
@@ -1087,8 +1456,9 @@
         state.selectedPresetUsed = rowValue(preset, "Preset Name");
         setControlValue(els.amount, rowValue(preset, "Amount"));
         setControlValue(els.expenseTier1, rowValue(preset, "Tier 1"));
-        renderExpenseTier2Options();
+        renderExpenseCategoryControls();
         setControlValue(els.expenseTier2, rowValue(preset, "Tier 2"));
+        renderExpenseTier2Button();
         setControlValue(els.incomeCategory, rowValue(preset, "Income Category") || rowValue(preset, "Tier 1"));
         setControlValue(els.transferCategory, rowValue(preset, "Transfer Category") || rowValue(preset, "Tier 1"));
         setControlValue(els.account, rowValue(preset, "Account"));
@@ -1106,8 +1476,9 @@
         setControlValue(els.date, rowValue(transaction, "Date") || today());
         setControlValue(els.amount, rowValue(transaction, "Amount"));
         setControlValue(els.expenseTier1, rowValue(transaction, "Tier 1"));
-        renderExpenseTier2Options();
+        renderExpenseCategoryControls();
         setControlValue(els.expenseTier2, rowValue(transaction, "Tier 2"));
+        renderExpenseTier2Button();
         setControlValue(els.incomeCategory, rowValue(transaction, "Tier 1"));
         setControlValue(els.transferCategory, rowValue(transaction, "Tier 1"));
         setControlValue(els.account, rowValue(transaction, "Account"));
@@ -1321,6 +1692,33 @@
       els.refreshButton.addEventListener("click", loadBootstrap);
       els.recentRefreshButton.addEventListener("click", reloadRecent);
       els.expenseTier1.addEventListener("change", renderExpenseTier2Options);
+      els.expenseTier1Grid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-expense-tier1]");
+        if (!button) {
+          return;
+        }
+        selectExpenseTier1(button.dataset.expenseTier1);
+      });
+      els.expenseTier2Button.addEventListener("click", openTier2Picker);
+      els.closeTier2PickerButton.addEventListener("click", closeTier2Picker);
+      els.pickerBackdrop.addEventListener("click", closeTier2Picker);
+      els.tier2SearchInput.addEventListener("input", renderTier2PickerChoices);
+      els.tier2PickerList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-expense-tier2]");
+        if (!button) {
+          return;
+        }
+        setControlValue(els.expenseTier2, button.dataset.expenseTier2);
+        renderExpenseTier2Button();
+        renderTier2PickerChoices();
+        closeTier2Picker();
+        setStatus(`Tier 2 selected: ${button.dataset.expenseTier2}.`);
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeTier2Picker();
+        }
+      });
       els.setupFromNoticeButton.addEventListener("click", () => {
         runAdminAction("setupWorkbook");
       });
