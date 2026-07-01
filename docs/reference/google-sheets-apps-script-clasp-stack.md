@@ -322,6 +322,10 @@ Your `src/appsscript.json` should be tracked in Git. Example for a Sheet-bound s
   "timeZone": "Asia/Bangkok",
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8",
+  "webapp": {
+    "executeAs": "USER_DEPLOYING",
+    "access": "MYSELF"
+  },
   "oauthScopes": [
     "https://www.googleapis.com/auth/spreadsheets.currentonly",
     "https://www.googleapis.com/auth/script.container.ui"
@@ -330,6 +334,27 @@ Your `src/appsscript.json` should be tracked in Git. Example for a Sheet-bound s
 ```
 
 Only add scopes you actually need. If your script opens other spreadsheets, uses Drive, calls external APIs, sends email, or manages triggers, you will need additional scopes.
+
+For HTML Service web apps, keep the `webapp` block explicit. Without it, a clasp redeploy can leave you with a deployment that exists but is not openable as the web app URL you expect. Use `MYSELF` for private owner testing unless the user explicitly wants broader access.
+
+### Web app deployment checklist
+
+Use this checklist before changing `/dev` or `/exec` deployments:
+
+1. Confirm `src/appsscript.json` includes the intended `webapp` config.
+2. Run local checks.
+3. Push source to Apps Script.
+4. Create a new Apps Script version from the pushed source.
+5. Redeploy the intended existing deployment ID to that version.
+6. Run `clasp deployments` and record the exact deployment ID/version pair.
+7. Test the correct URL while signed into an account that has access.
+
+Important deployment details:
+
+- A `/dev` URL is tied to a deployment ID. It is not enough to say "use `/dev`"; use the deployment ID that `clasp deployments` reports as `@HEAD`.
+- A `/exec` URL serves a fixed version. After local changes, create a new version and redeploy the intended `/exec` deployment ID to that version.
+- If the page says `Sorry, unable to open the file at this time`, check the deployment type, access setting, and `webapp` manifest before debugging UI code.
+- If unauthenticated browser tooling is redirected to Google sign-in, verify source and deployment metadata with clasp, then ask the owner to test from the signed-in Google account.
 
 ---
 

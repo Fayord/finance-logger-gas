@@ -197,6 +197,18 @@ Follow the clasp stack doc for local Apps Script workflow changes:
 - Prefer plain `.gs` or `.js` for simple Apps Script automation unless the user asks for TypeScript.
 - Use Script Properties for environment-specific IDs or secrets.
 - Do not hardcode Sheet IDs, email addresses, tokens, or credentials.
+- For HTML Service web apps, keep an explicit `webapp` block in `src/appsscript.json`.
+  This prevents clasp redeploys from producing a deployment that is not openable as a web app.
+  Current private default:
+
+```json
+"webapp": {
+  "executeAs": "USER_DEPLOYING",
+  "access": "MYSELF"
+}
+```
+
+Change `access` only after the user explicitly chooses who should be able to open the app.
 
 Current repo layout:
 
@@ -251,6 +263,17 @@ Commit workflow:
 - Run `npm run check` before each commit once the Node/clasp scaffold exists.
 - Commit local source before and after GAS sync work when the sync changes source files, so Git remains the code source of truth.
 - Do not leave verified source changes uncommitted when the user asks for implementation plus commit.
+
+Apps Script web app deployment workflow:
+
+- Confirm `src/appsscript.json` has the expected `webapp` block before creating or updating deployments.
+- Run `npm run check` before `clasp push`, `clasp version`, or `clasp deploy`.
+- Use `clasp deployments` to confirm which deployment ID is `@HEAD` and which ID is versioned.
+- Do not assume every `/dev` URL is the current latest code. `/dev` is tied to a deployment ID; use the deployment ID reported as `@HEAD`.
+- For `/exec`, create a new version from the pushed source, then redeploy the intended existing deployment ID to that version.
+- After deployment, run `clasp deployments` again and report the exact deployment ID and version, for example `AKfy... @10`.
+- If a web app URL says `Sorry, unable to open the file at this time`, check deployment type/access and the `webapp` manifest before changing UI code.
+- If browser testing redirects to Google sign-in, do not treat that as proof the app page is broken; verify source/deployment with clasp and ask the user to test while signed into the owning Google account.
 
 If Apps Script browser-editor changes happen, pull them back locally immediately and commit them.
 
