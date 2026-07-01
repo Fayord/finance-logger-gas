@@ -620,6 +620,37 @@ test("getMockQuickLogBootstrap reads seeded mock workbook data", () => {
   assert.equal(result.recentTransactions.length > 0, true);
 });
 
+test("getMockReviewReport asks for seeding when Mock tabs are missing", () => {
+  const spreadsheet = new FakeSpreadsheet();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.getMockReviewReport();
+
+  assert.equal(result.ok, false);
+  assert.match(result.message, /Seed mock workbook/);
+  assert.equal(result.missingSheets.length, Object.keys(context.MOCK_FINANCE_SHEETS).length);
+  assert.equal(result.transactions.total, 14);
+  assert.equal(result.reviewCoverage.softDeletedCount, 1);
+});
+
+test("getMockReviewReport returns planned coverage and live sheet status after seeding", () => {
+  const spreadsheet = createSeededMockWorkbook();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.getMockReviewReport();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.message, "Mock workbook review report is ready.");
+  assert.equal(result.missingSheets.length, 0);
+  assert.equal(result.liveSheets.length, Object.keys(context.MOCK_FINANCE_SHEETS).length);
+  assert.equal(result.transactions.active, 13);
+  assert.deepEqual(plain(result.presets.byType), {
+    Expense: 4,
+    Income: 1,
+    Transfer: 2
+  });
+});
+
 test("createMockTransaction appends only to Mock_Transactions", () => {
   const spreadsheet = createSetupWorkbook();
   context.seedMockWorkbook();

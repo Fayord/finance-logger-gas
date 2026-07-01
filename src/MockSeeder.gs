@@ -92,6 +92,50 @@ function getMockWorkbookStatus() {
   }
 }
 
+/**
+ * Returns a compact review report for the planned mock workbook and current Mock_ tab status.
+ *
+ * @return {Object}
+ */
+function getMockReviewReport() {
+  try {
+    var spreadsheet = getFinanceSpreadsheet_();
+    var report = buildMockWorkbookReviewReport();
+
+    if (!spreadsheet) {
+      return Object.assign({}, report, {
+        ok: false,
+        message: "No spreadsheet found. Set Script Property FINANCE_LOGGER_SHEET_ID.",
+        checkedAt: new Date().toISOString(),
+        sheets: []
+      });
+    }
+
+    var sheets = getMockWorkbookStatusFromSpreadsheet_(spreadsheet);
+    var missingSheets = sheets
+      .filter(function (sheetStatus) {
+        return !sheetStatus.exists;
+      })
+      .map(function (sheetStatus) {
+        return sheetStatus.name;
+      });
+
+    return Object.assign({}, report, {
+      ok: missingSheets.length === 0,
+      message:
+        missingSheets.length === 0
+          ? "Mock workbook review report is ready."
+          : "Seed mock workbook before reviewing live Mock_ tabs.",
+      checkedAt: new Date().toISOString(),
+      spreadsheet: getSpreadsheetSummary_(spreadsheet),
+      missingSheets: missingSheets,
+      liveSheets: sheets
+    });
+  } catch (error) {
+    return createMockSeederError_(error && error.message ? error.message : String(error));
+  }
+}
+
 function writeMockSheet_(sheet, plannedSheet) {
   var headers = plannedSheet.headers;
   var rowCount = plannedSheet.rows.length + 1;

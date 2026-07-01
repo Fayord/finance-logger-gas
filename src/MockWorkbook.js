@@ -113,6 +113,113 @@ function getMockWorkbookSheetNames() {
   });
 }
 
+function buildMockWorkbookReviewReport(workbook) {
+  var sourceWorkbook = workbook || buildMockWorkbook();
+  var transactionsSheet = getMockPlannedSheet_(sourceWorkbook, MOCK_FINANCE_SHEETS.TRANSACTIONS);
+  var accountsSheet = getMockPlannedSheet_(sourceWorkbook, MOCK_FINANCE_SHEETS.ACCOUNTS);
+  var balancesSheet = getMockPlannedSheet_(sourceWorkbook, MOCK_FINANCE_SHEETS.BALANCES);
+  var presetsSheet = getMockPlannedSheet_(sourceWorkbook, MOCK_FINANCE_SHEETS.PRESETS);
+  var transactions = mockRowsToObjects_(transactionsSheet);
+  var accounts = mockRowsToObjects_(accountsSheet);
+  var balances = mockRowsToObjects_(balancesSheet);
+  var presets = mockRowsToObjects_(presetsSheet);
+  var activeTransactions = transactions.filter(function (transaction) {
+    return !toBoolean(transaction["Deleted?"]);
+  });
+  var deletedTransactions = transactions.filter(function (transaction) {
+    return toBoolean(transaction["Deleted?"]);
+  });
+  var taxReviewTransactions = transactions.filter(function (transaction) {
+    return transaction["Taxable?"] === "Check" || transaction["Tax Deduction Status"] === "Check";
+  });
+  var uncertainTransactions = transactions.filter(function (transaction) {
+    var searchable = [
+      transaction["Tier 1"],
+      transaction["Tier 2"],
+      transaction["Tax Note"],
+      transaction.Memo
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchable.indexOf("missing") !== -1 || searchable.indexOf("uncertain") !== -1;
+  });
+  var formulaViews = sourceWorkbook.sheets
+    .filter(function (sheet) {
+      return sheet.kind === "formula-view";
+    })
+    .map(function (sheet) {
+      return {
+        name: sheet.name,
+        source: sheet.formula.indexOf("Mock_Transactions") !== -1 ? "Mock_Transactions" : "",
+        formula: sheet.formula
+      };
+    });
+  var balanceDifferences = balances.filter(function (balance) {
+    return balance["Balance Difference"] !== "" && Number(balance["Balance Difference"]) !== 0;
+  });
+
+  return {
+    ok: true,
+    generatedAt: sourceWorkbook.generatedAt,
+    sheetCount: sourceWorkbook.sheets.length,
+    sheets: sourceWorkbook.sheets.map(function (sheet) {
+      return {
+        name: sheet.name,
+        kind: sheet.kind,
+        rows: sheet.rows.length,
+        columns: sheet.headers.length
+      };
+    }),
+    transactions: {
+      total: transactions.length,
+      active: activeTransactions.length,
+      deleted: deletedTransactions.length,
+      byType: countByField_(transactions, "Type"),
+      activeByType: countByField_(activeTransactions, "Type")
+    },
+    reviewCoverage: {
+      taxReviewCount: taxReviewTransactions.length,
+      uncertainOrMissingCount: uncertainTransactions.length,
+      presetUsedCount: activeTransactions.filter(function (transaction) {
+        return Boolean(transaction["Preset Used"]);
+      }).length,
+      softDeletedCount: deletedTransactions.length,
+      transferCount: countByField_(activeTransactions, "Type").Transfer || 0
+    },
+    accounts: {
+      total: accounts.length,
+      active: accounts.filter(function (account) {
+        return toBoolean(account["Active?"]);
+      }).length,
+      inactive: accounts.filter(function (account) {
+        return !toBoolean(account["Active?"]);
+      }).length,
+      favorite: accounts.filter(function (account) {
+        return toBoolean(account["Favorite?"]);
+      }).length,
+      byType: countByField_(accounts, "Account Type")
+    },
+    presets: {
+      total: presets.length,
+      byType: countByField_(presets, "Type")
+    },
+    balances: {
+      total: balances.length,
+      withManualDifference: balanceDifferences.length,
+      differences: balanceDifferences.map(function (balance) {
+        return {
+          accountId: balance["Account ID"],
+          displayName: balance["Display Name"],
+          difference: balance["Balance Difference"],
+          notes: balance.Notes
+        };
+      })
+    },
+    formulaViews: formulaViews
+  };
+}
+
 function createDataSheet_(name, headers, rows) {
   return {
     name: name,
@@ -145,6 +252,36 @@ function createFormulaSheet_(name, headers, formula) {
     formula: formula,
     kind: "formula-view"
   };
+}
+
+function getMockPlannedSheet_(workbook, sheetName) {
+  return workbook.sheets.find(function (sheet) {
+    return sheet.name === sheetName;
+  });
+}
+
+function mockRowsToObjects_(sheet) {
+  if (!sheet) {
+    return [];
+  }
+
+  return sheet.rows.map(function (row) {
+    var record = {};
+
+    sheet.headers.forEach(function (header, index) {
+      record[header] = row[index] === undefined ? "" : row[index];
+    });
+
+    return record;
+  });
+}
+
+function countByField_(rows, fieldName) {
+  return rows.reduce(function (counts, row) {
+    var value = row[fieldName] || "Blank";
+    counts[value] = (counts[value] || 0) + 1;
+    return counts;
+  }, {});
 }
 
 function getMockAccounts_() {

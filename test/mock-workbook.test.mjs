@@ -140,3 +140,30 @@ test("mock category and preset tabs include the planned review coverage", () => 
     ["Milk Tea", "Metro Wallet", "Salary", "Credit Card Payment", "Investment", "Buffet", "Mom Care"]
   );
 });
+
+test("mock workbook review report summarizes review coverage", () => {
+  const report = context.buildMockWorkbookReviewReport();
+
+  assert.equal(report.ok, true);
+  assert.equal(report.sheetCount, Object.keys(context.MOCK_FINANCE_SHEETS).length);
+  assert.deepEqual(plain(report.transactions.byType), {
+    Expense: 7,
+    Income: 3,
+    Transfer: 4
+  });
+  assert.deepEqual(plain(report.transactions.activeByType), {
+    Expense: 6,
+    Income: 3,
+    Transfer: 4
+  });
+  assert.equal(report.reviewCoverage.taxReviewCount, 4);
+  assert.equal(report.reviewCoverage.uncertainOrMissingCount, 1);
+  assert.equal(report.reviewCoverage.softDeletedCount, 1);
+  assert.equal(report.accounts.inactive, 1);
+  assert.equal(report.balances.withManualDifference, 1);
+  assert.equal(report.formulaViews.length, 3);
+  assert.ok(
+    report.formulaViews.every((view) => view.source === "Mock_Transactions"),
+    "formula views should point at Mock_Transactions"
+  );
+});

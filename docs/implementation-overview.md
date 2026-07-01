@@ -60,6 +60,7 @@ The selected workbook design is Approach 1:
 - Public GAS functions:
   - `seedMockWorkbook()`
   - `getMockWorkbookStatus()`
+  - `getMockReviewReport()`
 - Mock tabs include:
   - `Mock_Transactions`
   - `Mock_Expenses_View`
@@ -76,7 +77,9 @@ The selected workbook design is Approach 1:
 - Added UI buttons:
   - `Seed mock workbook`
   - `Check mock workbook`
+  - `Review mock data`
 - Added tests for the mock workbook plan and Apps Script-style adapter behavior.
+- The review report summarizes mock transaction coverage, review flags, accounts, presets, balances, and formula views before real data is configured.
 
 ### Safe Real Workbook Setup
 
@@ -220,6 +223,7 @@ Implemented UI:
 - real/mock mode switch
 - mock-mode create/edit/delete against `Mock_Transactions`
 - one-click mock Quick Log smoke test
+- mock data review report in the workbook tools panel
 - real workbook readiness notice
 
 Remaining Phase 3 polish:
