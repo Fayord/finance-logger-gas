@@ -30,6 +30,8 @@ function seedMockWorkbook() {
       writeMockSheet_(sheet, plannedSheet);
     });
 
+    var validations = applyWorkbookValidationsToSpreadsheet_(spreadsheet, MOCK_FINANCE_SHEETS);
+
     SpreadsheetApp.flush();
 
     return {
@@ -43,6 +45,7 @@ function seedMockWorkbook() {
       },
       createdSheets: createdSheets,
       updatedSheets: updatedSheets,
+      validations: validations,
       sheets: getMockWorkbookStatusFromSpreadsheet_(spreadsheet)
     };
   } catch (error) {

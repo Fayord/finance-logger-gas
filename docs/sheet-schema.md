@@ -55,6 +55,7 @@ Rules:
 - `Type` is one of `Expense`, `Income`, or `Transfer`.
 - `Deleted?` defaults to `FALSE`.
 - Deleted transactions are hidden by the app by default, not physically removed.
+- Setup/seed applies dropdown validation to type, category, account, tax, preset, and deleted columns.
 
 ## Generated Transaction Views
 

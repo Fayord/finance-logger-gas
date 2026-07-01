@@ -180,6 +180,7 @@ vm.runInContext(fs.readFileSync("src/MockWorkbook.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/Connection.gs", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/WorkbookSetupPlan.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/WorkbookSetup.gs", "utf8"), context);
+vm.runInContext(fs.readFileSync("src/WorkbookValidation.gs", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/MockSeeder.gs", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/QuickLogModel.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/QuickLog.gs", "utf8"), context);

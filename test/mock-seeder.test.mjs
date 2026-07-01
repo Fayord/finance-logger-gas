@@ -41,6 +41,7 @@ class FakeSheet {
     this.name = name;
     this.values = [];
     this.formulas = new Map();
+    this.validations = [];
     this.filterRange = null;
     this.frozenRows = 0;
     this.resizedColumns = [];
@@ -70,6 +71,7 @@ class FakeSheet {
   clear() {
     this.values = [];
     this.formulas = new Map();
+    this.validations = [];
     this.filterRange = null;
   }
 
@@ -120,6 +122,17 @@ class FakeRange {
     return this;
   }
 
+  getValues() {
+    return Array.from({ length: this.numRows }, (_, rowOffset) => {
+      const sourceRow = this.sheet.values[this.row + rowOffset - 1] || [];
+
+      return Array.from({ length: this.numColumns }, (_, columnOffset) => {
+        const value = sourceRow[this.column + columnOffset - 1];
+        return value === undefined ? "" : value;
+      });
+    });
+  }
+
   setFormula(formula) {
     this.sheet.formulas.set(`${this.row}:${this.column}`, formula);
     return this;
@@ -147,6 +160,18 @@ class FakeRange {
 
     return this;
   }
+
+  setDataValidation(rule) {
+    this.sheet.validations.push({
+      row: this.row,
+      column: this.column,
+      numRows: this.numRows,
+      numColumns: this.numColumns,
+      rule
+    });
+
+    return this;
+  }
 }
 
 const context = {
@@ -159,6 +184,28 @@ const context = {
   Math,
   Error,
   SpreadsheetApp: {
+    newDataValidation() {
+      return {
+        values: [],
+        allowInvalid: true,
+        requireValueInList(values, showDropdown) {
+          this.values = values;
+          this.showDropdown = showDropdown;
+          return this;
+        },
+        setAllowInvalid(allowInvalid) {
+          this.allowInvalid = allowInvalid;
+          return this;
+        },
+        build() {
+          return {
+            values: this.values,
+            showDropdown: this.showDropdown,
+            allowInvalid: this.allowInvalid
+          };
+        }
+      };
+    },
     flush() {
       context.flushCount += 1;
     }
@@ -170,6 +217,7 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync("src/Schema.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/TransactionModel.js", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/MockWorkbook.js", "utf8"), context);
+vm.runInContext(fs.readFileSync("src/WorkbookValidation.gs", "utf8"), context);
 vm.runInContext(fs.readFileSync("src/MockSeeder.gs", "utf8"), context);
 
 function plain(value) {
@@ -199,6 +247,22 @@ test("seedMockWorkbook creates only Mock_ tabs and leaves real tabs untouched", 
   ]);
   assert.equal(spreadsheet.getSheetByName("Transactions"), realTransactions);
   assert.ok(spreadsheet.getSheetByName("Mock_Transactions"));
+});
+
+test("seedMockWorkbook applies dropdown validations to Mock_Transactions", () => {
+  const spreadsheet = new FakeSpreadsheet();
+  context.flushCount = 0;
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.seedMockWorkbook();
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+  const validationColumns = mockTransactions.validations.map((validation) => validation.column);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.validations.length, 10);
+  assert.deepEqual(validationColumns, [5, 7, 8, 9, 10, 11, 12, 13, 16, 17]);
+  assert.equal(mockTransactions.validations[0].rule.allowInvalid, false);
+  assert.deepEqual(plain(mockTransactions.validations[0].rule.values), ["Expense", "Income", "Transfer"]);
 });
 
 test("seedMockWorkbook reruns cleanly without duplicating mock tabs", () => {

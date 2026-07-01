@@ -41,6 +41,8 @@ function setupWorkbook() {
       }
     });
 
+    var validations = applyWorkbookValidationsToSpreadsheet_(spreadsheet, FINANCE_SHEETS);
+
     SpreadsheetApp.flush();
 
     return {
@@ -51,6 +53,7 @@ function setupWorkbook() {
       createdSheets: createdSheets,
       updatedSheets: updatedSheets,
       skippedSheets: skippedSheets,
+      validations: validations,
       sheets: getWorkbookSetupStatusFromSpreadsheet_(spreadsheet)
     };
   } catch (error) {

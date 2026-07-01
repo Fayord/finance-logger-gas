@@ -650,16 +650,16 @@
 
             <div class="field type-only is-visible" data-visible-for="Expense">
               <label for="expenseTier1Input">Tier 1</label>
-              <input id="expenseTier1Input" list="expenseTier1List" autocomplete="off">
+              <select id="expenseTier1Input"></select>
             </div>
             <div class="field type-only is-visible" data-visible-for="Expense">
               <label for="expenseTier2Input">Tier 2</label>
-              <input id="expenseTier2Input" list="expenseTier2List" autocomplete="off">
+              <select id="expenseTier2Input"></select>
             </div>
 
             <div class="field type-only" data-visible-for="Income">
               <label for="incomeCategoryInput">Income category</label>
-              <input id="incomeCategoryInput" list="incomeCategoryList" autocomplete="off">
+              <select id="incomeCategoryInput"></select>
             </div>
             <div class="field type-only" data-visible-for="Income">
               <label for="taxableInput">Taxable?</label>
@@ -672,20 +672,20 @@
 
             <div class="field type-only" data-visible-for="Transfer">
               <label for="transferCategoryInput">Transfer category</label>
-              <input id="transferCategoryInput" list="transferCategoryList" autocomplete="off">
+              <select id="transferCategoryInput"></select>
             </div>
             <div class="field type-only" data-visible-for="Transfer">
               <label for="fromAccountInput">From account</label>
-              <input id="fromAccountInput" list="accountList" autocomplete="off">
+              <select id="fromAccountInput"></select>
             </div>
 
             <div class="field type-only is-visible" data-visible-for="Expense Income">
               <label for="accountInput">Account</label>
-              <input id="accountInput" list="accountList" autocomplete="off">
+              <select id="accountInput"></select>
             </div>
             <div class="field type-only" data-visible-for="Transfer">
               <label for="toAccountInput">To account</label>
-              <input id="toAccountInput" list="accountList" autocomplete="off">
+              <select id="toAccountInput"></select>
             </div>
 
             <div class="field type-only is-visible" data-visible-for="Expense">
@@ -701,12 +701,6 @@
               <textarea id="memoInput" placeholder="Optional note"></textarea>
             </div>
           </div>
-
-          <datalist id="expenseTier1List"></datalist>
-          <datalist id="expenseTier2List"></datalist>
-          <datalist id="incomeCategoryList"></datalist>
-          <datalist id="transferCategoryList"></datalist>
-          <datalist id="accountList"></datalist>
 
           <div class="actions">
             <button class="primary-button" type="submit" id="submitButton" data-type="Expense">Log expense</button>
@@ -901,12 +895,6 @@
         return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
       }
 
-      function fillDatalist(id, values) {
-        document.getElementById(id).innerHTML = unique(values)
-          .map((value) => `<option value="${escapeHtml(value)}"></option>`)
-          .join("");
-      }
-
       function escapeHtml(value) {
         return String(value)
           .replace(/&/g, "&amp;")
@@ -915,29 +903,87 @@
           .replace(/"/g, "&quot;");
       }
 
+      function optionValue(option) {
+        return typeof option === "string" ? option : option.value;
+      }
+
+      function optionLabel(option) {
+        return typeof option === "string" ? option : option.label;
+      }
+
+      function fillSelect(id, options, placeholder) {
+        const select = document.getElementById(id);
+        const currentValue = select.value;
+        const uniqueOptions = Array.from(
+          new Map(
+            options
+              .filter((option) => optionValue(option))
+              .map((option) => [optionValue(option), option])
+          ).values()
+        ).sort((left, right) => optionLabel(left).localeCompare(optionLabel(right)));
+        const hasCurrentValue = uniqueOptions.some((option) => optionValue(option) === currentValue);
+
+        select.innerHTML = [
+          `<option value="">${escapeHtml(placeholder)}</option>`,
+          ...uniqueOptions.map(
+            (option) =>
+              `<option value="${escapeHtml(optionValue(option))}">${escapeHtml(optionLabel(option))}</option>`
+          )
+        ].join("");
+
+        if (currentValue && hasCurrentValue) {
+          select.value = currentValue;
+        }
+      }
+
+      function setControlValue(control, value) {
+        const nextValue = value || "";
+
+        if (control.tagName === "SELECT" && nextValue && !Array.from(control.options).some((option) => option.value === nextValue)) {
+          control.add(new Option(nextValue, nextValue));
+        }
+
+        control.value = nextValue;
+      }
+
       function accountOptions() {
-        return (state.bootstrap?.accounts || []).map((account) => rowValue(account, "Account ID"));
+        return (state.bootstrap?.accounts || []).map((account) => {
+          const accountId = rowValue(account, "Account ID");
+          const displayName = rowValue(account, "Display Name") || accountId;
+          const accountType = rowValue(account, "Account Type");
+
+          return {
+            value: accountId,
+            label: accountType ? `${displayName} (${accountType})` : displayName
+          };
+        });
       }
 
       function renderReferenceData() {
         const expenseCategories = state.bootstrap?.expenseCategories || [];
-        fillDatalist(
-          "expenseTier1List",
-          expenseCategories.map((row) => rowValue(row, "Tier 1"))
+        fillSelect(
+          "expenseTier1Input",
+          expenseCategories.map((row) => rowValue(row, "Tier 1")),
+          "Select tier 1"
         );
-        fillDatalist(
-          "expenseTier2List",
-          expenseCategories.map((row) => rowValue(row, "Tier 2"))
+        fillSelect(
+          "expenseTier2Input",
+          expenseCategories.map((row) => rowValue(row, "Tier 2")),
+          "Select tier 2"
         );
-        fillDatalist(
-          "incomeCategoryList",
-          (state.bootstrap?.incomeCategories || []).map((row) => rowValue(row, "Category"))
+        fillSelect(
+          "incomeCategoryInput",
+          (state.bootstrap?.incomeCategories || []).map((row) => rowValue(row, "Category")),
+          "Select income category"
         );
-        fillDatalist(
-          "transferCategoryList",
-          (state.bootstrap?.transferCategories || []).map((row) => rowValue(row, "Category"))
+        fillSelect(
+          "transferCategoryInput",
+          (state.bootstrap?.transferCategories || []).map((row) => rowValue(row, "Category")),
+          "Select transfer category"
         );
-        fillDatalist("accountList", accountOptions());
+        fillSelect("accountInput", accountOptions(), "Select account");
+        fillSelect("fromAccountInput", accountOptions(), "Select from account");
+        fillSelect("toAccountInput", accountOptions(), "Select to account");
       }
 
       function renderPresets() {
@@ -1022,35 +1068,35 @@
       function applyPreset(preset) {
         setType(rowValue(preset, "Type") || state.type);
         state.selectedPresetUsed = rowValue(preset, "Preset Name");
-        els.amount.value = rowValue(preset, "Amount");
-        els.expenseTier1.value = rowValue(preset, "Tier 1");
-        els.expenseTier2.value = rowValue(preset, "Tier 2");
-        els.incomeCategory.value = rowValue(preset, "Income Category") || rowValue(preset, "Tier 1");
-        els.transferCategory.value = rowValue(preset, "Transfer Category") || rowValue(preset, "Tier 1");
-        els.account.value = rowValue(preset, "Account");
-        els.fromAccount.value = rowValue(preset, "From Account");
-        els.toAccount.value = rowValue(preset, "To Account");
-        els.taxable.value = rowValue(preset, "Taxable?") || "Check";
-        els.deduction.value = rowValue(preset, "Tax Deduction Status") || "No";
-        els.memo.value = rowValue(preset, "Memo");
+        setControlValue(els.amount, rowValue(preset, "Amount"));
+        setControlValue(els.expenseTier1, rowValue(preset, "Tier 1"));
+        setControlValue(els.expenseTier2, rowValue(preset, "Tier 2"));
+        setControlValue(els.incomeCategory, rowValue(preset, "Income Category") || rowValue(preset, "Tier 1"));
+        setControlValue(els.transferCategory, rowValue(preset, "Transfer Category") || rowValue(preset, "Tier 1"));
+        setControlValue(els.account, rowValue(preset, "Account"));
+        setControlValue(els.fromAccount, rowValue(preset, "From Account"));
+        setControlValue(els.toAccount, rowValue(preset, "To Account"));
+        setControlValue(els.taxable, rowValue(preset, "Taxable?") || "Check");
+        setControlValue(els.deduction, rowValue(preset, "Tax Deduction Status") || "No");
+        setControlValue(els.memo, rowValue(preset, "Memo"));
       }
 
       function fillForm(transaction) {
         state.editId = rowValue(transaction, "Transaction ID");
         state.selectedPresetUsed = rowValue(transaction, "Preset Used");
         setType(rowValue(transaction, "Type") || "Expense");
-        els.date.value = rowValue(transaction, "Date") || today();
-        els.amount.value = rowValue(transaction, "Amount");
-        els.expenseTier1.value = rowValue(transaction, "Tier 1");
-        els.expenseTier2.value = rowValue(transaction, "Tier 2");
-        els.incomeCategory.value = rowValue(transaction, "Tier 1");
-        els.transferCategory.value = rowValue(transaction, "Tier 1");
-        els.account.value = rowValue(transaction, "Account");
-        els.fromAccount.value = rowValue(transaction, "From Account");
-        els.toAccount.value = rowValue(transaction, "To Account");
-        els.taxable.value = rowValue(transaction, "Taxable?") || "Check";
-        els.deduction.value = rowValue(transaction, "Tax Deduction Status") || "No";
-        els.memo.value = rowValue(transaction, "Memo");
+        setControlValue(els.date, rowValue(transaction, "Date") || today());
+        setControlValue(els.amount, rowValue(transaction, "Amount"));
+        setControlValue(els.expenseTier1, rowValue(transaction, "Tier 1"));
+        setControlValue(els.expenseTier2, rowValue(transaction, "Tier 2"));
+        setControlValue(els.incomeCategory, rowValue(transaction, "Tier 1"));
+        setControlValue(els.transferCategory, rowValue(transaction, "Tier 1"));
+        setControlValue(els.account, rowValue(transaction, "Account"));
+        setControlValue(els.fromAccount, rowValue(transaction, "From Account"));
+        setControlValue(els.toAccount, rowValue(transaction, "To Account"));
+        setControlValue(els.taxable, rowValue(transaction, "Taxable?") || "Check");
+        setControlValue(els.deduction, rowValue(transaction, "Tax Deduction Status") || "No");
+        setControlValue(els.memo, rowValue(transaction, "Memo"));
         els.editLabel.textContent = `Editing ${state.editId}`;
         els.editBanner.classList.add("is-visible");
         renderPresets();
@@ -1132,9 +1178,16 @@
             throw new Error(`${action} returned ${result}. The deployed Apps Script may be stale or the function returned a non-serializable value.`);
           }
           els.adminOutput.textContent = JSON.stringify(result, null, 2);
+          if (action === "seedMockWorkbook") {
+            if (state.mode !== "mock") {
+              setMode("mock");
+            }
+            loadBootstrap();
+            return result;
+          }
           if (
             (action === "setupWorkbook" && state.mode === "real") ||
-            ((action === "seedMockWorkbook" || action === "runMockQuickLogCheck") && state.mode === "mock")
+            (action === "runMockQuickLogCheck" && state.mode === "mock")
           ) {
             loadBootstrap();
           }

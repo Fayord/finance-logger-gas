@@ -80,6 +80,7 @@ The selected workbook design is Approach 1:
   - `Review mock data`
 - Added tests for the mock workbook plan and Apps Script-style adapter behavior.
 - The review report summarizes mock transaction coverage, review flags, accounts, presets, balances, and formula views before real data is configured.
+- Mock seed applies dropdown validations to key `Mock_Transactions` columns so direct sheet edits are constrained.
 
 ### Safe Real Workbook Setup
 
@@ -94,6 +95,7 @@ The selected workbook design is Approach 1:
   - writes/ensures headers
   - builds formula views from `Transactions`
   - seeds categories/settings only when those sheets are empty
+  - applies dropdown validations to key `Transactions` columns
   - does not clear existing real transaction rows
   - refuses mock or unknown sheet names
 - Added local tests for safe setup behavior.
@@ -121,7 +123,7 @@ The selected workbook design is Approach 1:
 
 - Replaced the temporary JSON-control page with a mobile-first Quick Log interface in Apps Script HTML service.
 - Added Expense / Income / Transfer switching with dynamic fields.
-- Added preset chips, selected-preset state, recent logs, edit mode, soft delete confirmation, and reload controls.
+- Added select dropdowns for account/category fields, preset chips, selected-preset state, recent logs, edit mode, soft delete confirmation, and reload controls.
 - Added a `Real` / `Mock` mode switch:
   - real mode writes to `Transactions`
   - mock mode writes only to `Mock_Transactions`
