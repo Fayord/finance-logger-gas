@@ -319,6 +319,11 @@
         align-content: start;
       }
 
+      .field.account-picker-field {
+        min-height: 130px;
+        align-content: start;
+      }
+
       label {
         color: var(--muted);
         font-size: 12px;
@@ -392,6 +397,45 @@
       .category-choice-label {
         min-width: 0;
         overflow-wrap: anywhere;
+      }
+
+      .account-type-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        min-height: 48px;
+      }
+
+      .account-type-button {
+        min-height: 48px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        gap: 2px;
+        padding: 6px 4px;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 850;
+        line-height: 1.1;
+      }
+
+      .account-type-button strong {
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      .account-type-button.is-active {
+        color: var(--transfer);
+        background: var(--transfer-soft);
+        border-color: oklch(0.72 0.12 255);
+      }
+
+      .account-type-button.is-active strong {
+        color: var(--transfer);
       }
 
       .picker-button {
@@ -520,6 +564,12 @@
         color: var(--expense);
         background: var(--expense-soft);
         border-color: oklch(0.72 0.14 28);
+      }
+
+      .picker-choice.is-account-active {
+        color: var(--transfer);
+        background: var(--transfer-soft);
+        border-color: oklch(0.72 0.12 255);
       }
 
       .picker-choice strong,
@@ -794,6 +844,10 @@
           min-height: 298px;
         }
 
+        .field.account-picker-field {
+          min-height: 132px;
+        }
+
         .choice-grid {
           min-height: 238px;
         }
@@ -805,6 +859,7 @@
         select,
         textarea,
         .category-choice,
+        .account-type-button,
         .picker-button,
         .picker-choice {
           transition:
@@ -907,18 +962,42 @@
               <label for="transferCategoryInput">Transfer category</label>
               <select id="transferCategoryInput"></select>
             </div>
-            <div class="field type-only" data-visible-for="Transfer">
-              <label for="fromAccountInput">From account</label>
-              <select id="fromAccountInput"></select>
+            <div class="field full type-only account-picker-field" data-visible-for="Transfer">
+              <label id="fromAccountLabel">From account</label>
+              <select class="native-state-control" id="fromAccountInput" aria-labelledby="fromAccountLabel" tabindex="-1"></select>
+              <div class="account-type-grid" id="fromAccountTypeGrid" role="radiogroup" aria-labelledby="fromAccountLabel"></div>
+              <button class="picker-button" id="fromAccountButton" type="button" aria-haspopup="dialog" data-account-slot="fromAccount">
+                <span class="picker-button-main">
+                  <span class="picker-button-value" id="fromAccountValue">Select account</span>
+                  <span class="picker-button-meta" id="fromAccountMeta">Choose account type first</span>
+                </span>
+                <span class="picker-arrow" aria-hidden="true">&rsaquo;</span>
+              </button>
             </div>
 
-            <div class="field type-only is-visible" data-visible-for="Expense Income">
-              <label for="accountInput">Account</label>
-              <select id="accountInput"></select>
+            <div class="field full type-only is-visible account-picker-field" data-visible-for="Expense Income">
+              <label id="accountLabel">Account</label>
+              <select class="native-state-control" id="accountInput" aria-labelledby="accountLabel" tabindex="-1"></select>
+              <div class="account-type-grid" id="accountTypeGrid" role="radiogroup" aria-labelledby="accountLabel"></div>
+              <button class="picker-button" id="accountButton" type="button" aria-haspopup="dialog" data-account-slot="account">
+                <span class="picker-button-main">
+                  <span class="picker-button-value" id="accountValue">Select account</span>
+                  <span class="picker-button-meta" id="accountMeta">Choose account type first</span>
+                </span>
+                <span class="picker-arrow" aria-hidden="true">&rsaquo;</span>
+              </button>
             </div>
-            <div class="field type-only" data-visible-for="Transfer">
-              <label for="toAccountInput">To account</label>
-              <select id="toAccountInput"></select>
+            <div class="field full type-only account-picker-field" data-visible-for="Transfer">
+              <label id="toAccountLabel">To account</label>
+              <select class="native-state-control" id="toAccountInput" aria-labelledby="toAccountLabel" tabindex="-1"></select>
+              <div class="account-type-grid" id="toAccountTypeGrid" role="radiogroup" aria-labelledby="toAccountLabel"></div>
+              <button class="picker-button" id="toAccountButton" type="button" aria-haspopup="dialog" data-account-slot="toAccount">
+                <span class="picker-button-main">
+                  <span class="picker-button-value" id="toAccountValue">Select account</span>
+                  <span class="picker-button-meta" id="toAccountMeta">Choose account type first</span>
+                </span>
+                <span class="picker-arrow" aria-hidden="true">&rsaquo;</span>
+              </button>
             </div>
 
             <div class="field type-only is-visible" data-visible-for="Expense">
@@ -1003,6 +1082,13 @@
         recentTransactions: [],
         editId: null,
         selectedPresetUsed: "",
+        accountTypeBySlot: {
+          account: "Bank",
+          fromAccount: "Bank",
+          toAccount: "Bank"
+        },
+        pickerMode: null,
+        pickerAccountSlot: null,
         submitting: false
       };
 
@@ -1025,6 +1111,14 @@
         }
       };
 
+      const accountTypeButtons = [
+        { value: "Cash", label: "Cash", short: "$" },
+        { value: "Bank", label: "Bank", short: "B" },
+        { value: "Wallet", label: "Wallet", short: "W" },
+        { value: "Credit", label: "Credit", short: "C" },
+        { value: "Invest", label: "Invest", short: "I" }
+      ];
+
       const els = {
         sheetName: document.getElementById("sheetName"),
         refreshButton: document.getElementById("refreshButton"),
@@ -1046,6 +1140,7 @@
         expenseTier2Meta: document.getElementById("expenseTier2Meta"),
         tier2Picker: document.getElementById("tier2Picker"),
         pickerBackdrop: document.getElementById("pickerBackdrop"),
+        tier2PickerTitle: document.getElementById("tier2PickerTitle"),
         tier2PickerSubtitle: document.getElementById("tier2PickerSubtitle"),
         tier2SearchInput: document.getElementById("tier2SearchInput"),
         tier2PickerList: document.getElementById("tier2PickerList"),
@@ -1053,8 +1148,20 @@
         incomeCategory: document.getElementById("incomeCategoryInput"),
         transferCategory: document.getElementById("transferCategoryInput"),
         account: document.getElementById("accountInput"),
+        accountTypeGrid: document.getElementById("accountTypeGrid"),
+        accountButton: document.getElementById("accountButton"),
+        accountValue: document.getElementById("accountValue"),
+        accountMeta: document.getElementById("accountMeta"),
         fromAccount: document.getElementById("fromAccountInput"),
+        fromAccountTypeGrid: document.getElementById("fromAccountTypeGrid"),
+        fromAccountButton: document.getElementById("fromAccountButton"),
+        fromAccountValue: document.getElementById("fromAccountValue"),
+        fromAccountMeta: document.getElementById("fromAccountMeta"),
         toAccount: document.getElementById("toAccountInput"),
+        toAccountTypeGrid: document.getElementById("toAccountTypeGrid"),
+        toAccountButton: document.getElementById("toAccountButton"),
+        toAccountValue: document.getElementById("toAccountValue"),
+        toAccountMeta: document.getElementById("toAccountMeta"),
         taxable: document.getElementById("taxableInput"),
         deduction: document.getElementById("deductionInput"),
         memo: document.getElementById("memoInput"),
@@ -1144,6 +1251,7 @@
         els.submitButton.dataset.type = type;
         els.submitButton.textContent = state.editId ? "Save changes" : `Log ${type.toLowerCase()}`;
         renderExpenseCategoryControls();
+        renderAccountControls();
       }
 
       function rowValue(row, key) {
@@ -1283,7 +1391,11 @@
           return;
         }
 
+        state.pickerMode = "tier2";
+        state.pickerAccountSlot = null;
         els.tier2SearchInput.value = "";
+        els.tier2SearchInput.placeholder = "Search Tier 2 choices";
+        els.tier2PickerTitle.textContent = "Choose Tier 2";
         els.tier2PickerSubtitle.textContent = `${els.expenseTier1.value} category choices`;
         renderTier2PickerChoices();
         els.pickerBackdrop.classList.add("is-visible");
@@ -1294,6 +1406,8 @@
       function closeTier2Picker() {
         els.pickerBackdrop.classList.remove("is-visible");
         els.tier2Picker.classList.remove("is-visible");
+        state.pickerMode = null;
+        state.pickerAccountSlot = null;
       }
 
       function renderTier2PickerChoices() {
@@ -1323,6 +1437,207 @@
             `;
           })
           .join("");
+      }
+
+      function accountSlotConfig(slot) {
+        const configs = {
+          account: {
+            select: els.account,
+            grid: els.accountTypeGrid,
+            button: els.accountButton,
+            value: els.accountValue,
+            meta: els.accountMeta,
+            title: state.type === "Income" ? "Choose received account" : "Choose account"
+          },
+          fromAccount: {
+            select: els.fromAccount,
+            grid: els.fromAccountTypeGrid,
+            button: els.fromAccountButton,
+            value: els.fromAccountValue,
+            meta: els.fromAccountMeta,
+            title: "Choose from account"
+          },
+          toAccount: {
+            select: els.toAccount,
+            grid: els.toAccountTypeGrid,
+            button: els.toAccountButton,
+            value: els.toAccountValue,
+            meta: els.toAccountMeta,
+            title: "Choose to account"
+          }
+        };
+
+        return configs[slot];
+      }
+
+      function normalizeAccountType(accountType) {
+        if (accountType === "Credit Card" || accountType === "Credit Line" || accountType === "Credit") {
+          return "Credit";
+        }
+
+        if (accountType === "Investment" || accountType === "Invest") {
+          return "Invest";
+        }
+
+        return accountType || "Bank";
+      }
+
+      function accountById(accountId) {
+        return (state.bootstrap?.accounts || []).find((account) => rowValue(account, "Account ID") === accountId);
+      }
+
+      function accountDisplayName(account) {
+        if (!account) {
+          return "";
+        }
+
+        return rowValue(account, "Display Name") || rowValue(account, "Account ID");
+      }
+
+      function accountMatchesType(account, accountType) {
+        return normalizeAccountType(rowValue(account, "Account Type")) === accountType;
+      }
+
+      function syncAccountTypeFromSelected(slot) {
+        const config = accountSlotConfig(slot);
+        const selectedAccount = accountById(config.select.value);
+
+        if (selectedAccount) {
+          state.accountTypeBySlot[slot] = normalizeAccountType(rowValue(selectedAccount, "Account Type"));
+        }
+      }
+
+      function accountChoicesForSlot(slot) {
+        const selectedType = state.accountTypeBySlot[slot] || "Bank";
+        const query = els.tier2SearchInput.value.trim().toLowerCase();
+
+        return (state.bootstrap?.accounts || [])
+          .filter((account) => {
+            const activeValue = rowValue(account, "Active?");
+            return activeValue === true || String(activeValue).toUpperCase() === "TRUE";
+          })
+          .filter((account) => accountMatchesType(account, selectedType))
+          .filter((account) => {
+            if (!query) {
+              return true;
+            }
+
+            return [
+              rowValue(account, "Account ID"),
+              rowValue(account, "Display Name"),
+              rowValue(account, "Full Name"),
+              rowValue(account, "Account Type"),
+              rowValue(account, "Last 4")
+            ].join(" ").toLowerCase().includes(query);
+          })
+          .sort((left, right) => Number(rowValue(left, "Sort Order") || 999) - Number(rowValue(right, "Sort Order") || 999));
+      }
+
+      function renderAccountTypeButtons(slot) {
+        const config = accountSlotConfig(slot);
+        const activeType = state.accountTypeBySlot[slot] || "Bank";
+
+        config.grid.innerHTML = accountTypeButtons
+          .map((accountType) => {
+            const isActive = accountType.value === activeType;
+            return `
+              <button class="account-type-button ${isActive ? "is-active" : ""}" type="button" role="radio" aria-checked="${String(
+                isActive
+              )}" data-account-slot="${escapeHtml(slot)}" data-account-type="${escapeHtml(accountType.value)}">
+                <strong>${escapeHtml(accountType.short)}</strong>
+                <span>${escapeHtml(accountType.label)}</span>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function renderAccountPickerButton(slot) {
+        const config = accountSlotConfig(slot);
+        const selectedAccount = accountById(config.select.value);
+        const selectedType = state.accountTypeBySlot[slot] || "Bank";
+        const count = (state.bootstrap?.accounts || []).filter((account) => {
+          const activeValue = rowValue(account, "Active?");
+          return (
+            (activeValue === true || String(activeValue).toUpperCase() === "TRUE") &&
+            accountMatchesType(account, selectedType)
+          );
+        }).length;
+
+        config.value.textContent = selectedAccount ? accountDisplayName(selectedAccount) : "Select account";
+        config.meta.textContent = selectedAccount
+          ? `${rowValue(selectedAccount, "Account Type") || selectedType} account`
+          : `${count} ${selectedType} account${count === 1 ? "" : "s"}`;
+      }
+
+      function renderAccountControls() {
+        ["account", "fromAccount", "toAccount"].forEach((slot) => {
+          syncAccountTypeFromSelected(slot);
+          renderAccountTypeButtons(slot);
+          renderAccountPickerButton(slot);
+        });
+      }
+
+      function openAccountPicker(slot, accountType) {
+        if (accountType) {
+          state.accountTypeBySlot[slot] = accountType;
+        }
+
+        state.pickerMode = "account";
+        state.pickerAccountSlot = slot;
+        renderAccountTypeButtons(slot);
+        renderAccountPickerButton(slot);
+        els.tier2SearchInput.value = "";
+        els.tier2SearchInput.placeholder = "Search accounts";
+        els.tier2PickerTitle.textContent = accountSlotConfig(slot).title;
+        els.tier2PickerSubtitle.textContent = `${state.accountTypeBySlot[slot]} accounts`;
+        renderAccountPickerChoices();
+        els.pickerBackdrop.classList.add("is-visible");
+        els.tier2Picker.classList.add("is-visible");
+        setTimeout(() => els.tier2SearchInput.focus(), 80);
+      }
+
+      function renderAccountPickerChoices() {
+        const slot = state.pickerAccountSlot;
+        const config = accountSlotConfig(slot);
+        const choices = accountChoicesForSlot(slot);
+
+        if (!choices.length) {
+          els.tier2PickerList.innerHTML = '<p class="empty-line">No account found for this type.</p>';
+          return;
+        }
+
+        els.tier2PickerList.innerHTML = choices
+          .map((account) => {
+            const accountId = rowValue(account, "Account ID");
+            const isActive = accountId === config.select.value;
+            const fullName = rowValue(account, "Full Name");
+            const accountType = rowValue(account, "Account Type");
+            const last4 = rowValue(account, "Last 4");
+            const meta = [accountType, last4 ? `ending ${last4}` : "", fullName].filter(Boolean).join(" - ");
+
+            return `
+              <button class="picker-choice ${isActive ? "is-account-active" : ""}" type="button" data-account-id="${escapeHtml(
+                accountId
+              )}">
+                <span>
+                  <strong>${escapeHtml(accountDisplayName(account))}</strong>
+                  <span>${escapeHtml(meta || accountId)}</span>
+                </span>
+                <span class="picker-check" aria-hidden="true">${isActive ? "&check;" : ""}</span>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function selectAccount(slot, accountId) {
+        const config = accountSlotConfig(slot);
+        setControlValue(config.select, accountId);
+        syncAccountTypeFromSelected(slot);
+        renderAccountControls();
+        closeTier2Picker();
+        setStatus(`${config.title} selected.`);
       }
 
       function setControlValue(control, value) {
@@ -1369,6 +1684,7 @@
         fillSelect("accountInput", accountOptions(), "Select account");
         fillSelect("fromAccountInput", accountOptions(), "Select from account");
         fillSelect("toAccountInput", accountOptions(), "Select to account");
+        renderAccountControls();
       }
 
       function renderPresets() {
@@ -1447,6 +1763,7 @@
         els.editBanner.classList.remove("is-visible");
         setType(state.type);
         renderExpenseCategoryControls();
+        renderAccountControls();
         renderPresets();
         setStatus("Ready.");
       }
@@ -1464,6 +1781,7 @@
         setControlValue(els.account, rowValue(preset, "Account"));
         setControlValue(els.fromAccount, rowValue(preset, "From Account"));
         setControlValue(els.toAccount, rowValue(preset, "To Account"));
+        renderAccountControls();
         setControlValue(els.taxable, rowValue(preset, "Taxable?") || "Check");
         setControlValue(els.deduction, rowValue(preset, "Tax Deduction Status") || "No");
         setControlValue(els.memo, rowValue(preset, "Memo"));
@@ -1484,6 +1802,7 @@
         setControlValue(els.account, rowValue(transaction, "Account"));
         setControlValue(els.fromAccount, rowValue(transaction, "From Account"));
         setControlValue(els.toAccount, rowValue(transaction, "To Account"));
+        renderAccountControls();
         setControlValue(els.taxable, rowValue(transaction, "Taxable?") || "Check");
         setControlValue(els.deduction, rowValue(transaction, "Tax Deduction Status") || "No");
         setControlValue(els.memo, rowValue(transaction, "Memo"));
@@ -1702,8 +2021,21 @@
       els.expenseTier2Button.addEventListener("click", openTier2Picker);
       els.closeTier2PickerButton.addEventListener("click", closeTier2Picker);
       els.pickerBackdrop.addEventListener("click", closeTier2Picker);
-      els.tier2SearchInput.addEventListener("input", renderTier2PickerChoices);
+      els.tier2SearchInput.addEventListener("input", () => {
+        if (state.pickerMode === "account") {
+          renderAccountPickerChoices();
+          return;
+        }
+
+        renderTier2PickerChoices();
+      });
       els.tier2PickerList.addEventListener("click", (event) => {
+        const accountButton = event.target.closest("[data-account-id]");
+        if (accountButton && state.pickerMode === "account") {
+          selectAccount(state.pickerAccountSlot, accountButton.dataset.accountId);
+          return;
+        }
+
         const button = event.target.closest("[data-expense-tier2]");
         if (!button) {
           return;
@@ -1713,6 +2045,21 @@
         renderTier2PickerChoices();
         closeTier2Picker();
         setStatus(`Tier 2 selected: ${button.dataset.expenseTier2}.`);
+      });
+      document.querySelectorAll(".account-type-grid").forEach((grid) => {
+        grid.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-account-slot][data-account-type]");
+          if (!button) {
+            return;
+          }
+
+          openAccountPicker(button.dataset.accountSlot, button.dataset.accountType);
+        });
+      });
+      document.querySelectorAll("[data-account-slot].picker-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          openAccountPicker(button.dataset.accountSlot, state.accountTypeBySlot[button.dataset.accountSlot]);
+        });
       });
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
