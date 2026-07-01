@@ -112,6 +112,7 @@ The selected workbook design is Approach 1:
 - `updateTransaction(transactionId, input)` validates edits, preserves the original ID and created timestamp, and updates the matching real row.
 - `softDeleteTransaction(transactionId)` marks `Deleted?` and `Deleted At` without removing the row.
 - `getRecentTransactions(limit)` returns recent non-deleted rows only.
+- Successful create/edit/delete refreshes the matching `Balances` sheet when it exists, while preserving manual balance and reconciliation notes.
 - Added a read-only UI button:
   - `Check quick log bootstrap`
 - Added local tests for Quick Log bootstrap, transaction create/edit/delete, validation, append/update behavior, and hidden soft-deleted rows.
@@ -222,6 +223,7 @@ Implemented UI:
 - delete recent log with confirmation
 - real/mock mode switch
 - mock-mode create/edit/delete against `Mock_Transactions`
+- balance refresh after mock or real create/edit/delete when the matching `Balances` sheet exists
 - one-click mock Quick Log smoke test
 - mock data review report in the workbook tools panel
 - real workbook readiness notice

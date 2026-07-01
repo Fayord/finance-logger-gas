@@ -121,6 +121,32 @@ function getRecentTransactionRecords(transactions, limit) {
     .slice(0, normalizedLimit);
 }
 
+function buildBalanceRows(accounts, transactions, existingBalances, options) {
+  var existingByAccountId = (existingBalances || []).reduce(function (lookup, balance) {
+    lookup[balance["Account ID"]] = balance;
+    return lookup;
+  }, {});
+  var reconciledAt = options && options.reconciledAt ? options.reconciledAt : "";
+
+  return calculateBalances(accounts, transactions).map(function (balance) {
+    var existing = existingByAccountId[balance["Account ID"]] || {};
+    var manualBalance = existing["Manual Balance"] === undefined ? "" : existing["Manual Balance"];
+    var balanceDifference = manualBalance === "" ? "" : Number(manualBalance) - balance["Calculated Balance"];
+
+    return {
+      "Account ID": balance["Account ID"],
+      "Display Name": balance["Display Name"],
+      "Opening Balance": balance["Opening Balance"],
+      "Transaction Delta": balance["Transaction Delta"],
+      "Calculated Balance": balance["Calculated Balance"],
+      "Manual Balance": manualBalance,
+      "Balance Difference": balanceDifference,
+      "Last Reconciled At": existing["Last Reconciled At"] || reconciledAt,
+      Notes: existing.Notes || ""
+    };
+  });
+}
+
 function replaceTransactionRecord_(transactions, replacement) {
   return transactions.map(function (transaction) {
     return transaction["Transaction ID"] === replacement["Transaction ID"] ? replacement : transaction;

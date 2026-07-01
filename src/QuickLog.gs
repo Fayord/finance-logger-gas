@@ -69,9 +69,10 @@ function createTransactionForSheets_(input, sheetNames, mode) {
     transactionsSheet
       .getRange(transactionsSheet.getLastRow() + 1, 1, 1, TRANSACTION_HEADERS.length)
       .setValues([result.row]);
-    SpreadsheetApp.flush();
 
     var updatedTransactions = existingTransactions.concat([result.transaction]);
+    var updatedBalances = refreshBalancesForSheets_(spreadsheet, sheetNames);
+    SpreadsheetApp.flush();
 
     return {
       ok: true,
@@ -79,6 +80,7 @@ function createTransactionForSheets_(input, sheetNames, mode) {
       createdAt: result.transaction["Created At"],
       mode: mode,
       transaction: result.transaction,
+      balances: updatedBalances,
       recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
     };
   } catch (error) {
@@ -126,6 +128,9 @@ function updateTransactionForSheets_(transactionId, input, sheetNames, mode) {
     }
 
     transactionsSheet.getRange(targetRow.rowNumber, 1, 1, TRANSACTION_HEADERS.length).setValues([result.row]);
+
+    var updatedTransactions = replaceTransactionRecord_(existingTransactions, result.transaction);
+    var updatedBalances = refreshBalancesForSheets_(spreadsheet, sheetNames);
     SpreadsheetApp.flush();
 
     return {
@@ -134,10 +139,8 @@ function updateTransactionForSheets_(transactionId, input, sheetNames, mode) {
       updatedAt: result.transaction["Updated At"],
       mode: mode,
       transaction: result.transaction,
-      recentTransactions: getRecentTransactionRecords(
-        replaceTransactionRecord_(existingTransactions, result.transaction),
-        getRecentLogLimit_(spreadsheet, sheetNames)
-      )
+      balances: updatedBalances,
+      recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
     };
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
@@ -184,6 +187,9 @@ function softDeleteTransactionForSheets_(transactionId, sheetNames, mode) {
     }
 
     transactionsSheet.getRange(targetRow.rowNumber, 1, 1, TRANSACTION_HEADERS.length).setValues([result.row]);
+
+    var updatedTransactions = replaceTransactionRecord_(existingTransactions, result.transaction);
+    var updatedBalances = refreshBalancesForSheets_(spreadsheet, sheetNames);
     SpreadsheetApp.flush();
 
     return {
@@ -192,10 +198,8 @@ function softDeleteTransactionForSheets_(transactionId, sheetNames, mode) {
       deletedAt: result.transaction["Deleted At"],
       mode: mode,
       transaction: result.transaction,
-      recentTransactions: getRecentTransactionRecords(
-        replaceTransactionRecord_(existingTransactions, result.transaction),
-        getRecentLogLimit_(spreadsheet, sheetNames)
-      )
+      balances: updatedBalances,
+      recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
     };
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
@@ -409,6 +413,50 @@ function ensureQuickLogSheets_(spreadsheet, sheetNames, mode) {
 function getRecentLogLimit_(spreadsheet, sheetNames) {
   var settings = readSheetObjects_(spreadsheet.getSheetByName(sheetNames.SETTINGS), SETTING_HEADERS);
   return Number(getSettingValue_(settings, "recentLogLimit", 20));
+}
+
+function refreshBalancesForSheets_(spreadsheet, sheetNames) {
+  var balancesSheet = spreadsheet.getSheetByName(sheetNames.BALANCES);
+
+  if (!balancesSheet) {
+    return [];
+  }
+
+  var accounts = readSheetObjects_(spreadsheet.getSheetByName(sheetNames.ACCOUNTS), ACCOUNT_HEADERS);
+  var transactions = readSheetObjects_(
+    spreadsheet.getSheetByName(sheetNames.TRANSACTIONS),
+    TRANSACTION_HEADERS
+  );
+  var existingBalances = readSheetObjects_(balancesSheet, BALANCE_HEADERS);
+  var balances = buildBalanceRows(accounts, transactions, existingBalances, {
+    reconciledAt: new Date().toISOString()
+  });
+  var rows = balances.map(function (balance) {
+    return BALANCE_HEADERS.map(function (header) {
+      return balance[header] === undefined ? "" : balance[header];
+    });
+  });
+
+  if (balancesSheet.getFilter()) {
+    balancesSheet.getFilter().remove();
+  }
+
+  balancesSheet.clear();
+  balancesSheet.getRange(1, 1, 1, BALANCE_HEADERS.length).setValues([BALANCE_HEADERS]);
+  balancesSheet.setFrozenRows(1);
+
+  if (rows.length > 0) {
+    balancesSheet.getRange(2, 1, rows.length, BALANCE_HEADERS.length).setValues(rows);
+  }
+
+  balancesSheet.getRange(1, 1, 1, BALANCE_HEADERS.length).setFontWeight("bold");
+  balancesSheet.autoResizeColumns(1, BALANCE_HEADERS.length);
+
+  if (rows.length > 0) {
+    balancesSheet.getRange(1, 1, rows.length + 1, BALANCE_HEADERS.length).createFilter();
+  }
+
+  return balances;
 }
 
 function createGasTransactionId_(type) {

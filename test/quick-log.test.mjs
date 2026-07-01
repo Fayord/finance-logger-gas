@@ -265,6 +265,15 @@ function seedTransaction(spreadsheet, overrides = {}) {
   return transaction;
 }
 
+function getSheetRecordById(sheet, id) {
+  const headers = sheet.values[0];
+  const row = sheet.values.find((candidate) => candidate[0] === id);
+
+  assert.ok(row, `${id} should exist in ${sheet.name}`);
+
+  return Object.fromEntries(headers.map((header, index) => [header, row[index]]));
+}
+
 test("buildQuickLogBootstrapData returns active references and recent non-deleted transactions", () => {
   const workbook = context.buildMockWorkbook();
   const sheets = Object.fromEntries(
@@ -675,6 +684,38 @@ test("createMockTransaction appends only to Mock_Transactions", () => {
   assert.equal(realTransactions.values.length, 1);
   assert.equal(mockTransactions.values.length, originalMockRows + 1);
   assert.equal(mockTransactions.values.at(-1)[14], "Mock mode backend test");
+});
+
+test("mock balance rows refresh after mock create and soft delete", () => {
+  const spreadsheet = createSeededMockWorkbook();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+  context.flushCount = 0;
+  const balances = spreadsheet.getSheetByName("Mock_Balances");
+  const beforeCash = getSheetRecordById(balances, "cash-wallet");
+
+  const create = context.createMockTransaction({
+    Type: "Expense",
+    Date: "2026-06-30",
+    Amount: 85,
+    "Tier 1": "Food & Dining",
+    "Tier 2": "Sweet Drinks & Snacks",
+    Account: "cash-wallet",
+    Memo: "Balance refresh test"
+  });
+  const afterCreateCash = getSheetRecordById(balances, "cash-wallet");
+
+  const remove = context.softDeleteMockTransaction(create.transaction["Transaction ID"]);
+  const afterDeleteCash = getSheetRecordById(balances, "cash-wallet");
+
+  assert.equal(create.ok, true);
+  assert.equal(remove.ok, true);
+  assert.equal(create.balances.some((balance) => balance["Account ID"] === "cash-wallet"), true);
+  assert.equal(afterCreateCash["Transaction Delta"], beforeCash["Transaction Delta"] - 85);
+  assert.equal(afterCreateCash["Calculated Balance"], beforeCash["Calculated Balance"] - 85);
+  assert.equal(afterCreateCash["Manual Balance"], beforeCash["Manual Balance"]);
+  assert.equal(afterDeleteCash["Transaction Delta"], beforeCash["Transaction Delta"]);
+  assert.equal(afterDeleteCash["Calculated Balance"], beforeCash["Calculated Balance"]);
+  assert.equal(context.flushCount, 2);
 });
 
 test("updateMockTransaction and softDeleteMockTransaction leave real rows untouched", () => {
