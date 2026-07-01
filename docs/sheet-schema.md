@@ -56,6 +56,7 @@ Rules:
 - `Deleted?` defaults to `FALSE`.
 - Deleted transactions are hidden by the app by default, not physically removed.
 - Setup/seed applies dropdown validation to type, category, account, tax, preset, and deleted columns.
+- The web app and backend validate that expense `Tier 2` belongs to the selected `Tier 1`.
 
 ## Generated Transaction Views
 

@@ -51,10 +51,12 @@ function createTransactionForSheets_(input, sheetNames, mode) {
     ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
     var transactionsSheet = spreadsheet.getSheetByName(sheetNames.TRANSACTIONS);
-    var existingTransactions = readSheetObjects_(transactionsSheet, TRANSACTION_HEADERS);
+    var workbookData = readQuickLogWorkbookData_(spreadsheet, sheetNames);
+    var existingTransactions = workbookData.transactions;
     var result = createQuickLogTransaction(input || {}, existingTransactions, {
       now: new Date().toISOString(),
-      transactionId: createGasTransactionId_(input && input.Type)
+      transactionId: createGasTransactionId_(input && input.Type),
+      referenceData: workbookData
     });
 
     if (!result.ok) {
@@ -107,15 +109,15 @@ function updateTransactionForSheets_(transactionId, input, sheetNames, mode) {
     ensureQuickLogSheets_(spreadsheet, sheetNames, mode);
 
     var transactionsSheet = spreadsheet.getSheetByName(sheetNames.TRANSACTIONS);
+    var workbookData = readQuickLogWorkbookData_(spreadsheet, sheetNames);
     var existingRows = readSheetObjectsWithRowNumbers_(transactionsSheet, TRANSACTION_HEADERS);
-    var existingTransactions = existingRows.map(function (row) {
-      return row.record;
-    });
+    var existingTransactions = workbookData.transactions;
     var targetRow = existingRows.find(function (row) {
       return row.record["Transaction ID"] === transactionId;
     });
     var result = updateQuickLogTransaction(transactionId, input || {}, existingTransactions, {
-      now: new Date().toISOString()
+      now: new Date().toISOString(),
+      referenceData: workbookData
     });
 
     if (!result.ok) {

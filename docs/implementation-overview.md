@@ -114,6 +114,7 @@ The selected workbook design is Approach 1:
 - `updateTransaction(transactionId, input)` validates edits, preserves the original ID and created timestamp, and updates the matching real row.
 - `softDeleteTransaction(transactionId)` marks `Deleted?` and `Deleted At` without removing the row.
 - `getRecentTransactions(limit)` returns recent non-deleted rows only.
+- Create/edit validates accounts and category references before writing, including Expense Tier 1/Tier 2 pairs.
 - Successful create/edit/delete refreshes the matching `Balances` sheet when it exists, while preserving manual balance and reconciliation notes.
 - Added a read-only UI button:
   - `Check quick log bootstrap`
@@ -123,7 +124,7 @@ The selected workbook design is Approach 1:
 
 - Replaced the temporary JSON-control page with a mobile-first Quick Log interface in Apps Script HTML service.
 - Added Expense / Income / Transfer switching with dynamic fields.
-- Added select dropdowns for account/category fields, preset chips, selected-preset state, recent logs, edit mode, soft delete confirmation, and reload controls.
+- Added select dropdowns for account/category fields, dependent Expense Tier 2 filtering, preset chips, selected-preset state, recent logs, edit mode, soft delete confirmation, and reload controls.
 - Added a `Real` / `Mock` mode switch:
   - real mode writes to `Transactions`
   - mock mode writes only to `Mock_Transactions`

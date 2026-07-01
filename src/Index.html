@@ -936,6 +936,27 @@
         }
       }
 
+      function expenseTier2OptionsForTier1(tier1) {
+        const expenseCategories = state.bootstrap?.expenseCategories || [];
+        const scopedCategories = tier1
+          ? expenseCategories.filter((row) => rowValue(row, "Tier 1") === tier1)
+          : expenseCategories;
+
+        return scopedCategories.map((row) => rowValue(row, "Tier 2"));
+      }
+
+      function renderExpenseTier2Options() {
+        const previousTier2 = els.expenseTier2.value;
+        fillSelect("expenseTier2Input", expenseTier2OptionsForTier1(els.expenseTier1.value), "Select tier 2");
+
+        if (
+          previousTier2 &&
+          !Array.from(els.expenseTier2.options).some((option) => option.value === previousTier2)
+        ) {
+          els.expenseTier2.value = "";
+        }
+      }
+
       function setControlValue(control, value) {
         const nextValue = value || "";
 
@@ -966,11 +987,7 @@
           expenseCategories.map((row) => rowValue(row, "Tier 1")),
           "Select tier 1"
         );
-        fillSelect(
-          "expenseTier2Input",
-          expenseCategories.map((row) => rowValue(row, "Tier 2")),
-          "Select tier 2"
-        );
+        renderExpenseTier2Options();
         fillSelect(
           "incomeCategoryInput",
           (state.bootstrap?.incomeCategories || []).map((row) => rowValue(row, "Category")),
@@ -1070,6 +1087,7 @@
         state.selectedPresetUsed = rowValue(preset, "Preset Name");
         setControlValue(els.amount, rowValue(preset, "Amount"));
         setControlValue(els.expenseTier1, rowValue(preset, "Tier 1"));
+        renderExpenseTier2Options();
         setControlValue(els.expenseTier2, rowValue(preset, "Tier 2"));
         setControlValue(els.incomeCategory, rowValue(preset, "Income Category") || rowValue(preset, "Tier 1"));
         setControlValue(els.transferCategory, rowValue(preset, "Transfer Category") || rowValue(preset, "Tier 1"));
@@ -1088,6 +1106,7 @@
         setControlValue(els.date, rowValue(transaction, "Date") || today());
         setControlValue(els.amount, rowValue(transaction, "Amount"));
         setControlValue(els.expenseTier1, rowValue(transaction, "Tier 1"));
+        renderExpenseTier2Options();
         setControlValue(els.expenseTier2, rowValue(transaction, "Tier 2"));
         setControlValue(els.incomeCategory, rowValue(transaction, "Tier 1"));
         setControlValue(els.transferCategory, rowValue(transaction, "Tier 1"));
@@ -1301,6 +1320,7 @@
       els.cancelEditButton.addEventListener("click", clearForm);
       els.refreshButton.addEventListener("click", loadBootstrap);
       els.recentRefreshButton.addEventListener("click", reloadRecent);
+      els.expenseTier1.addEventListener("change", renderExpenseTier2Options);
       els.setupFromNoticeButton.addEventListener("click", () => {
         runAdminAction("setupWorkbook");
       });

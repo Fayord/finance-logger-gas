@@ -189,6 +189,23 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function getMockReferenceData() {
+  const workbook = context.buildMockWorkbook();
+  const sheets = Object.fromEntries(
+    workbook.sheets.map((sheet) => [
+      sheet.name.replace("Mock_", ""),
+      context.sheetRowsToObjects(sheet.rows, sheet.headers)
+    ])
+  );
+
+  return {
+    accounts: sheets.Accounts,
+    expenseCategories: sheets.Expense_Categories,
+    incomeCategories: sheets.Income_Categories,
+    transferCategories: sheets.Transfer_Categories
+  };
+}
+
 function createSetupWorkbook() {
   const spreadsheet = new FakeSpreadsheet();
   context.getFinanceSpreadsheet_ = () => spreadsheet;
@@ -387,6 +404,45 @@ test("createQuickLogTransaction rejects invalid transfer input", () => {
   assert.match(result.errors.join(" "), /must be different/);
 });
 
+test("createQuickLogTransaction rejects reference mismatches when reference data is provided", () => {
+  const invalidExpense = context.createQuickLogTransaction(
+    {
+      Type: "Expense",
+      Date: "2026-06-30",
+      Amount: 65,
+      "Tier 1": "Food & Dining",
+      "Tier 2": "Software",
+      Account: "cash-wallet"
+    },
+    [],
+    {
+      now: "2026-06-30T12:00:00.000Z",
+      transactionId: "EXP-BAD-CATEGORY",
+      referenceData: getMockReferenceData()
+    }
+  );
+  const invalidAccount = context.createQuickLogTransaction(
+    {
+      Type: "Income",
+      Date: "2026-06-30",
+      Amount: 5000,
+      "Tier 1": "Salary",
+      Account: "missing-account"
+    },
+    [],
+    {
+      now: "2026-06-30T12:00:00.000Z",
+      transactionId: "INC-BAD-ACCOUNT",
+      referenceData: getMockReferenceData()
+    }
+  );
+
+  assert.equal(invalidExpense.ok, false);
+  assert.match(invalidExpense.errors.join(" "), /Tier 2 must belong/);
+  assert.equal(invalidAccount.ok, false);
+  assert.match(invalidAccount.errors.join(" "), /Account must exist/);
+});
+
 test("updateQuickLogTransaction edits an existing transaction while preserving ID and Created At", () => {
   const existing = context.normalizeTransaction(
     {
@@ -497,6 +553,7 @@ test("createTransaction appends to real Transactions and returns updated recent 
 
 test("updateTransaction updates the matching real Transactions row", () => {
   const spreadsheet = createSetupWorkbook();
+  seedAccounts(spreadsheet);
   seedTransaction(spreadsheet);
   context.getFinanceSpreadsheet_ = () => spreadsheet;
 
@@ -702,6 +759,27 @@ test("createMockTransaction appends only to Mock_Transactions", () => {
   assert.equal(mockTransactions.values.length, originalMockRows + 1);
   assert.equal(mockTransactions.values.at(-1)[14], "Mock mode backend test");
   assert.equal(mockTransactions.values.at(-1)[15], "Milk Tea");
+});
+
+test("createMockTransaction rejects mismatched mock expense categories without appending", () => {
+  const spreadsheet = createSeededMockWorkbook();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+  const originalMockRows = mockTransactions.values.length;
+
+  const result = context.createMockTransaction({
+    Type: "Expense",
+    Date: "2026-06-30",
+    Amount: 85,
+    "Tier 1": "Food & Dining",
+    "Tier 2": "Software",
+    Account: "cash-wallet",
+    Memo: "Invalid category pair"
+  });
+
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join(" "), /Tier 2 must belong/);
+  assert.equal(mockTransactions.values.length, originalMockRows);
 });
 
 test("mock balance rows refresh after mock create and soft delete", () => {

@@ -39,6 +39,16 @@ function createQuickLogTransaction(input, existingTransactions, options) {
     };
   }
 
+  var referenceValidation = validateQuickLogReferences(transaction, options && options.referenceData);
+
+  if (!referenceValidation.valid) {
+    return {
+      ok: false,
+      errors: referenceValidation.errors,
+      transaction: transaction
+    };
+  }
+
   return {
     ok: true,
     transaction: transaction,
@@ -71,6 +81,16 @@ function updateQuickLogTransaction(transactionId, input, existingTransactions, o
     return {
       ok: false,
       errors: validation.errors,
+      transaction: transaction
+    };
+  }
+
+  var referenceValidation = validateQuickLogReferences(transaction, options && options.referenceData);
+
+  if (!referenceValidation.valid) {
+    return {
+      ok: false,
+      errors: referenceValidation.errors,
       transaction: transaction
     };
   }
@@ -121,6 +141,52 @@ function getRecentTransactionRecords(transactions, limit) {
     .slice(0, normalizedLimit);
 }
 
+function validateQuickLogReferences(transaction, referenceData) {
+  if (!referenceData) {
+    return { valid: true, errors: [] };
+  }
+
+  var errors = [];
+  var accounts = referenceData.accounts || [];
+  var expenseCategories = filterActiveRows_(referenceData.expenseCategories || []);
+  var incomeCategories = filterActiveRows_(referenceData.incomeCategories || []);
+  var transferCategories = filterActiveRows_(referenceData.transferCategories || []);
+
+  if (transaction.Type === TRANSACTION_TYPES.EXPENSE) {
+    if (
+      !expenseCategories.some(function (category) {
+        return category["Tier 1"] === transaction["Tier 1"] && category["Tier 2"] === transaction["Tier 2"];
+      })
+    ) {
+      errors.push("Expense Tier 2 must belong to the selected Tier 1.");
+    }
+
+    validateAccountExists_(accounts, transaction.Account, "Account", errors);
+  }
+
+  if (transaction.Type === TRANSACTION_TYPES.INCOME) {
+    if (!incomeCategories.some(function (category) { return category.Category === transaction["Tier 1"]; })) {
+      errors.push("Income category must exist in Income_Categories.");
+    }
+
+    validateAccountExists_(accounts, transaction.Account, "Account", errors);
+  }
+
+  if (transaction.Type === TRANSACTION_TYPES.TRANSFER) {
+    if (!transferCategories.some(function (category) { return category.Category === transaction["Tier 1"]; })) {
+      errors.push("Transfer category must exist in Transfer_Categories.");
+    }
+
+    validateAccountExists_(accounts, transaction["From Account"], "From Account", errors);
+    validateAccountExists_(accounts, transaction["To Account"], "To Account", errors);
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors: errors
+  };
+}
+
 function buildBalanceRows(accounts, transactions, existingBalances, options) {
   var existingByAccountId = (existingBalances || []).reduce(function (lookup, balance) {
     lookup[balance["Account ID"]] = balance;
@@ -145,6 +211,17 @@ function buildBalanceRows(accounts, transactions, existingBalances, options) {
       Notes: existing.Notes || ""
     };
   });
+}
+
+function validateAccountExists_(accounts, accountId, label, errors) {
+  if (
+    accountId &&
+    !accounts.some(function (account) {
+      return account["Account ID"] === accountId;
+    })
+  ) {
+    errors.push(label + " must exist in Accounts.");
+  }
 }
 
 function replaceTransactionRecord_(transactions, replacement) {
