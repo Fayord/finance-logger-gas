@@ -26,7 +26,7 @@ function getQuickLogBootstrapForSheets_(sheetNames, mode) {
     bootstrap.mode = mode;
     bootstrap.spreadsheet = getSpreadsheetSummary_(spreadsheet);
 
-    return bootstrap;
+    return toJsonSafeValue_(bootstrap);
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
@@ -74,7 +74,7 @@ function createTransactionForSheets_(input, sheetNames, mode) {
     var updatedBalances = refreshBalancesForSheets_(spreadsheet, sheetNames);
     SpreadsheetApp.flush();
 
-    return {
+    return toJsonSafeValue_({
       ok: true,
       message: "Transaction created.",
       createdAt: result.transaction["Created At"],
@@ -82,7 +82,7 @@ function createTransactionForSheets_(input, sheetNames, mode) {
       transaction: result.transaction,
       balances: updatedBalances,
       recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
-    };
+    });
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
@@ -133,7 +133,7 @@ function updateTransactionForSheets_(transactionId, input, sheetNames, mode) {
     var updatedBalances = refreshBalancesForSheets_(spreadsheet, sheetNames);
     SpreadsheetApp.flush();
 
-    return {
+    return toJsonSafeValue_({
       ok: true,
       message: "Transaction updated.",
       updatedAt: result.transaction["Updated At"],
@@ -141,7 +141,7 @@ function updateTransactionForSheets_(transactionId, input, sheetNames, mode) {
       transaction: result.transaction,
       balances: updatedBalances,
       recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
-    };
+    });
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
@@ -192,7 +192,7 @@ function softDeleteTransactionForSheets_(transactionId, sheetNames, mode) {
     var updatedBalances = refreshBalancesForSheets_(spreadsheet, sheetNames);
     SpreadsheetApp.flush();
 
-    return {
+    return toJsonSafeValue_({
       ok: true,
       message: "Transaction deleted.",
       deletedAt: result.transaction["Deleted At"],
@@ -200,7 +200,7 @@ function softDeleteTransactionForSheets_(transactionId, sheetNames, mode) {
       transaction: result.transaction,
       balances: updatedBalances,
       recentTransactions: getRecentTransactionRecords(updatedTransactions, getRecentLogLimit_(spreadsheet, sheetNames))
-    };
+    });
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
@@ -268,7 +268,7 @@ function runMockQuickLogCheck() {
     var recentResult = getRecentMockTransactions(20);
     var realRowCountAfter = realTransactions ? realTransactions.getLastRow() : null;
 
-    return {
+    return toJsonSafeValue_({
       ok: true,
       mode: "mock",
       message: realTransactionsSheetExists
@@ -299,7 +299,7 @@ function runMockQuickLogCheck() {
         deleted: Boolean(deleteResult.transaction["Deleted?"]),
         deletedAt: deleteResult.transaction["Deleted At"]
       }
-    };
+    });
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
@@ -320,12 +320,12 @@ function getRecentTransactionsForSheets_(limit, sheetNames, mode) {
       TRANSACTION_HEADERS
     );
 
-    return {
+    return toJsonSafeValue_({
       ok: true,
       checkedAt: new Date().toISOString(),
       mode: mode,
       transactions: getRecentTransactionRecords(transactions, limit || getRecentLogLimit_(spreadsheet, sheetNames))
-    };
+    });
   } catch (error) {
     return createQuickLogError_(error && error.message ? error.message : String(error));
   }
@@ -470,4 +470,29 @@ function createQuickLogError_(message) {
     message: message,
     checkedAt: new Date().toISOString()
   };
+}
+
+function toJsonSafeValue_(value) {
+  if (value === null || value === undefined) {
+    return value === undefined ? "" : null;
+  }
+
+  if (Object.prototype.toString.call(value) === "[object Date]") {
+    return value.toISOString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(function (item) {
+      return toJsonSafeValue_(item);
+    });
+  }
+
+  if (typeof value === "object") {
+    return Object.keys(value).reduce(function (safeObject, key) {
+      safeObject[key] = toJsonSafeValue_(value[key]);
+      return safeObject;
+    }, {});
+  }
+
+  return value;
 }

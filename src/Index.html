@@ -1142,6 +1142,11 @@
         setFormReady(false);
         try {
           const result = await gasCall(getModeActions().bootstrap);
+          if (result === null || result === undefined) {
+            throw new Error(
+              `${getModeActions().bootstrap} returned ${result}. Refresh the /dev deployment; if it repeats, run Check mock quick log.`
+            );
+          }
           if (!result.ok) {
             throw new Error(result.message || "Quick Log bootstrap failed.");
           }

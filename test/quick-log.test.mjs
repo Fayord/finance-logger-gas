@@ -630,6 +630,21 @@ test("getMockQuickLogBootstrap reads seeded mock workbook data", () => {
   assert.equal(result.recentTransactions.length > 0, true);
 });
 
+test("getMockQuickLogBootstrap returns JSON-safe values when sheet cells contain Dates", () => {
+  const spreadsheet = createSeededMockWorkbook();
+  const mockTransactions = spreadsheet.getSheetByName("Mock_Transactions");
+  mockTransactions.values[1][1] = new Date("2026-07-01T00:00:00.000Z");
+  mockTransactions.values[1][2] = new Date("2026-07-01T09:00:00.000Z");
+  mockTransactions.values[1][3] = new Date("2026-07-01T09:00:00.000Z");
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.getMockQuickLogBootstrap();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.recentTransactions[0].Date, "2026-07-01T00:00:00.000Z");
+  assert.equal(result.recentTransactions[0]["Created At"], "2026-07-01T09:00:00.000Z");
+});
+
 test("getMockReviewReport asks for seeding when Mock tabs are missing", () => {
   const spreadsheet = new FakeSpreadsheet();
   context.getFinanceSpreadsheet_ = () => spreadsheet;
