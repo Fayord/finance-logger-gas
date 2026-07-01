@@ -329,6 +329,11 @@
         align-content: start;
       }
 
+      .field.flat-category-field {
+        min-height: 178px;
+        align-content: start;
+      }
+
       .field.account-picker-field {
         min-height: 130px;
         align-content: start;
@@ -389,6 +394,18 @@
         border-color: oklch(0.72 0.14 28);
       }
 
+      .category-choice.is-income.is-active {
+        color: var(--income);
+        background: var(--income-soft);
+        border-color: oklch(0.72 0.12 148);
+      }
+
+      .category-choice.is-transfer.is-active {
+        color: var(--transfer);
+        background: var(--transfer-soft);
+        border-color: oklch(0.72 0.12 255);
+      }
+
       .category-choice-icon {
         width: 26px;
         height: 26px;
@@ -402,6 +419,14 @@
 
       .category-choice.is-active .category-choice-icon {
         background: oklch(0.91 0.055 28);
+      }
+
+      .category-choice.is-income.is-active .category-choice-icon {
+        background: oklch(0.9 0.05 148);
+      }
+
+      .category-choice.is-transfer.is-active .category-choice-icon {
+        background: oklch(0.9 0.045 255);
       }
 
       .category-choice-label {
@@ -925,6 +950,10 @@
         min-height: 298px;
       }
 
+      html.phone-viewport .field.flat-category-field {
+        min-height: 238px;
+      }
+
       html.phone-viewport .field.account-picker-field {
         min-height: 136px;
       }
@@ -1003,6 +1032,10 @@
 
         .field.expense-category-field {
           min-height: 298px;
+        }
+
+        .field.flat-category-field {
+          min-height: 238px;
         }
 
         .field.account-picker-field {
@@ -1106,9 +1139,10 @@
               </button>
             </div>
 
-            <div class="field type-only" data-visible-for="Income">
-              <label for="incomeCategoryInput">Income category</label>
-              <select id="incomeCategoryInput"></select>
+            <div class="field full type-only flat-category-field" data-visible-for="Income">
+              <label id="incomeCategoryLabel">Income category</label>
+              <select class="native-state-control" id="incomeCategoryInput" aria-labelledby="incomeCategoryLabel" tabindex="-1"></select>
+              <div class="choice-grid" id="incomeCategoryGrid" role="radiogroup" aria-labelledby="incomeCategoryLabel"></div>
             </div>
             <div class="field type-only" data-visible-for="Income">
               <label for="taxableInput">Taxable?</label>
@@ -1119,9 +1153,10 @@
               </select>
             </div>
 
-            <div class="field type-only" data-visible-for="Transfer">
-              <label for="transferCategoryInput">Transfer category</label>
-              <select id="transferCategoryInput"></select>
+            <div class="field full type-only flat-category-field" data-visible-for="Transfer">
+              <label id="transferCategoryLabel">Transfer category</label>
+              <select class="native-state-control" id="transferCategoryInput" aria-labelledby="transferCategoryLabel" tabindex="-1"></select>
+              <div class="choice-grid" id="transferCategoryGrid" role="radiogroup" aria-labelledby="transferCategoryLabel"></div>
             </div>
             <div class="field full type-only account-picker-field" data-visible-for="Transfer">
               <label id="fromAccountLabel">From account</label>
@@ -1307,7 +1342,9 @@
         tier2PickerList: document.getElementById("tier2PickerList"),
         closeTier2PickerButton: document.getElementById("closeTier2PickerButton"),
         incomeCategory: document.getElementById("incomeCategoryInput"),
+        incomeCategoryGrid: document.getElementById("incomeCategoryGrid"),
         transferCategory: document.getElementById("transferCategoryInput"),
+        transferCategoryGrid: document.getElementById("transferCategoryGrid"),
         account: document.getElementById("accountInput"),
         accountTypeGrid: document.getElementById("accountTypeGrid"),
         accountButton: document.getElementById("accountButton"),
@@ -1412,6 +1449,7 @@
         els.submitButton.dataset.type = type;
         els.submitButton.textContent = state.editId ? "Save changes" : `Log ${type.toLowerCase()}`;
         renderExpenseCategoryControls();
+        renderFlatCategoryControls();
         renderAccountControls();
       }
 
@@ -1537,6 +1575,54 @@
       function renderExpenseCategoryControls() {
         renderExpenseTier1Buttons();
         renderExpenseTier2Options();
+      }
+
+      function renderFlatCategoryButtons(config) {
+        const options = unique((state.bootstrap?.[config.source] || []).map((row) => rowValue(row, "Category")));
+
+        if (!options.length) {
+          config.grid.innerHTML = `<p class="empty-line">No ${escapeHtml(config.emptyLabel)} loaded yet.</p>`;
+          return;
+        }
+
+        config.grid.innerHTML = options
+          .map((name) => {
+            const isActive = name === config.select.value;
+            return `
+              <button class="category-choice ${config.kindClass} ${isActive ? "is-active" : ""}" type="button" role="radio" aria-checked="${String(
+                isActive
+              )}" ${config.dataAttribute}="${escapeHtml(name)}">
+                <span class="category-choice-icon" aria-hidden="true">${escapeHtml(compactLabel(name))}</span>
+                <span class="category-choice-label">${escapeHtml(name)}</span>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function renderFlatCategoryControls() {
+        renderFlatCategoryButtons({
+          select: els.incomeCategory,
+          grid: els.incomeCategoryGrid,
+          source: "incomeCategories",
+          kindClass: "is-income",
+          dataAttribute: "data-income-category",
+          emptyLabel: "income categories"
+        });
+        renderFlatCategoryButtons({
+          select: els.transferCategory,
+          grid: els.transferCategoryGrid,
+          source: "transferCategories",
+          kindClass: "is-transfer",
+          dataAttribute: "data-transfer-category",
+          emptyLabel: "transfer categories"
+        });
+      }
+
+      function selectFlatCategory(control, value, label) {
+        setControlValue(control, value);
+        renderFlatCategoryControls();
+        setStatus(`${label} selected: ${value}.`);
       }
 
       function selectExpenseTier1(tier1) {
@@ -1842,6 +1928,7 @@
           (state.bootstrap?.transferCategories || []).map((row) => rowValue(row, "Category")),
           "Select transfer category"
         );
+        renderFlatCategoryControls();
         fillSelect("accountInput", accountOptions(), "Select account");
         fillSelect("fromAccountInput", accountOptions(), "Select from account");
         fillSelect("toAccountInput", accountOptions(), "Select to account");
@@ -1924,6 +2011,7 @@
         els.editBanner.classList.remove("is-visible");
         setType(state.type);
         renderExpenseCategoryControls();
+        renderFlatCategoryControls();
         renderAccountControls();
         renderPresets();
         setStatus("Ready.");
@@ -1939,6 +2027,7 @@
         renderExpenseTier2Button();
         setControlValue(els.incomeCategory, rowValue(preset, "Income Category") || rowValue(preset, "Tier 1"));
         setControlValue(els.transferCategory, rowValue(preset, "Transfer Category") || rowValue(preset, "Tier 1"));
+        renderFlatCategoryControls();
         setControlValue(els.account, rowValue(preset, "Account"));
         setControlValue(els.fromAccount, rowValue(preset, "From Account"));
         setControlValue(els.toAccount, rowValue(preset, "To Account"));
@@ -1960,6 +2049,7 @@
         renderExpenseTier2Button();
         setControlValue(els.incomeCategory, rowValue(transaction, "Tier 1"));
         setControlValue(els.transferCategory, rowValue(transaction, "Tier 1"));
+        renderFlatCategoryControls();
         setControlValue(els.account, rowValue(transaction, "Account"));
         setControlValue(els.fromAccount, rowValue(transaction, "From Account"));
         setControlValue(els.toAccount, rowValue(transaction, "To Account"));
@@ -2178,6 +2268,24 @@
           return;
         }
         selectExpenseTier1(button.dataset.expenseTier1);
+      });
+      els.incomeCategory.addEventListener("change", renderFlatCategoryControls);
+      els.transferCategory.addEventListener("change", renderFlatCategoryControls);
+      els.incomeCategoryGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-income-category]");
+        if (!button) {
+          return;
+        }
+
+        selectFlatCategory(els.incomeCategory, button.dataset.incomeCategory, "Income category");
+      });
+      els.transferCategoryGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-transfer-category]");
+        if (!button) {
+          return;
+        }
+
+        selectFlatCategory(els.transferCategory, button.dataset.transferCategory, "Transfer category");
       });
       els.expenseTier2Button.addEventListener("click", openTier2Picker);
       els.closeTier2PickerButton.addEventListener("click", closeTier2Picker);
