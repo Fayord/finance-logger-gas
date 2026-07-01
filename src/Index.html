@@ -352,6 +352,12 @@
         font-weight: 800;
       }
 
+      .preset-chip.is-selected {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--surface);
+      }
+
       .empty-line {
         color: var(--muted);
         font-size: 13px;
@@ -754,6 +760,7 @@
         bootstrap: null,
         recentTransactions: [],
         editId: null,
+        selectedPresetUsed: "",
         submitting: false
       };
 
@@ -945,8 +952,12 @@
         els.presetList.innerHTML = activePresets
           .map(
             (preset) =>
-              `<button class="preset-chip" type="button" data-preset-id="${escapeHtml(
+              `<button class="preset-chip ${
+                rowValue(preset, "Preset Name") === state.selectedPresetUsed ? "is-selected" : ""
+              }" type="button" data-preset-id="${escapeHtml(
                 rowValue(preset, "Preset ID")
+              )}" aria-pressed="${String(
+                rowValue(preset, "Preset Name") === state.selectedPresetUsed
               )}">${escapeHtml(rowValue(preset, "Preset Name"))}</button>`
           )
           .join("");
@@ -997,17 +1008,20 @@
 
       function clearForm() {
         state.editId = null;
+        state.selectedPresetUsed = "";
         els.form.reset();
         els.date.value = today();
         els.taxable.value = "Check";
         els.deduction.value = "No";
         els.editBanner.classList.remove("is-visible");
         setType(state.type);
+        renderPresets();
         setStatus("Ready.");
       }
 
       function applyPreset(preset) {
         setType(rowValue(preset, "Type") || state.type);
+        state.selectedPresetUsed = rowValue(preset, "Preset Name");
         els.amount.value = rowValue(preset, "Amount");
         els.expenseTier1.value = rowValue(preset, "Tier 1");
         els.expenseTier2.value = rowValue(preset, "Tier 2");
@@ -1023,6 +1037,7 @@
 
       function fillForm(transaction) {
         state.editId = rowValue(transaction, "Transaction ID");
+        state.selectedPresetUsed = rowValue(transaction, "Preset Used");
         setType(rowValue(transaction, "Type") || "Expense");
         els.date.value = rowValue(transaction, "Date") || today();
         els.amount.value = rowValue(transaction, "Amount");
@@ -1038,6 +1053,7 @@
         els.memo.value = rowValue(transaction, "Memo");
         els.editLabel.textContent = `Editing ${state.editId}`;
         els.editBanner.classList.add("is-visible");
+        renderPresets();
         setStatus("Editing recent transaction.");
       }
 
@@ -1048,6 +1064,10 @@
           Amount: els.amount.value,
           Memo: els.memo.value
         };
+
+        if (state.selectedPresetUsed) {
+          payload["Preset Used"] = state.selectedPresetUsed;
+        }
 
         if (state.type === "Expense") {
           payload["Tier 1"] = els.expenseTier1.value;
@@ -1212,6 +1232,7 @@
 
       els.tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
+          state.selectedPresetUsed = "";
           setType(tab.dataset.type);
           renderPresets();
         });
@@ -1239,7 +1260,8 @@
         );
         if (preset) {
           applyPreset(preset);
-          setStatus("Preset applied.");
+          renderPresets();
+          setStatus(`${rowValue(preset, "Preset Name")} preset applied.`);
         }
       });
 

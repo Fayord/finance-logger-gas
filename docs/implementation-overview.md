@@ -121,7 +121,7 @@ The selected workbook design is Approach 1:
 
 - Replaced the temporary JSON-control page with a mobile-first Quick Log interface in Apps Script HTML service.
 - Added Expense / Income / Transfer switching with dynamic fields.
-- Added preset chips, recent logs, edit mode, soft delete confirmation, and reload controls.
+- Added preset chips, selected-preset state, recent logs, edit mode, soft delete confirmation, and reload controls.
 - Added a `Real` / `Mock` mode switch:
   - real mode writes to `Transactions`
   - mock mode writes only to `Mock_Transactions`

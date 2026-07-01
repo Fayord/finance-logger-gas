@@ -675,7 +675,8 @@ test("createMockTransaction appends only to Mock_Transactions", () => {
     "Tier 1": "Food & Dining",
     "Tier 2": "Sweet Drinks & Snacks",
     Account: "cash-wallet",
-    Memo: "Mock mode backend test"
+    Memo: "Mock mode backend test",
+    "Preset Used": "Milk Tea"
   });
 
   assert.equal(result.ok, true);
@@ -684,6 +685,7 @@ test("createMockTransaction appends only to Mock_Transactions", () => {
   assert.equal(realTransactions.values.length, 1);
   assert.equal(mockTransactions.values.length, originalMockRows + 1);
   assert.equal(mockTransactions.values.at(-1)[14], "Mock mode backend test");
+  assert.equal(mockTransactions.values.at(-1)[15], "Milk Tea");
 });
 
 test("mock balance rows refresh after mock create and soft delete", () => {
