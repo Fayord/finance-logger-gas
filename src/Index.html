@@ -251,6 +251,38 @@
         display: flex;
       }
 
+      .readiness-notice {
+        display: none;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid oklch(0.82 0.1 80);
+        border-radius: var(--radius);
+        background: var(--edit-soft);
+      }
+
+      .readiness-notice.is-visible {
+        display: grid;
+      }
+
+      .notice-title {
+        color: oklch(0.34 0.08 72);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .notice-copy {
+        color: oklch(0.38 0.07 72);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .notice-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
       .link-button {
         min-height: 34px;
         padding: 0 10px;
@@ -532,6 +564,11 @@
         .recent-actions {
           justify-content: flex-end;
         }
+
+        .notice-actions {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
       }
 
       @media (prefers-reduced-motion: no-preference) {
@@ -565,6 +602,17 @@
           </div>
         </div>
       </header>
+
+      <section class="readiness-notice" id="readinessNotice" aria-live="polite">
+        <div>
+          <p class="notice-title" id="readinessTitle">Workbook setup needed</p>
+          <p class="notice-copy" id="readinessCopy">Real tabs are not ready yet.</p>
+        </div>
+        <div class="notice-actions">
+          <button class="secondary-button" type="button" id="setupFromNoticeButton">Setup real workbook</button>
+          <button class="secondary-button" type="button" id="mockFromNoticeButton">Use mock mode</button>
+        </div>
+      </section>
 
       <section class="panel" aria-labelledby="quickLogTitle">
         <div class="type-switcher" role="tablist" aria-label="Transaction type">
@@ -753,6 +801,11 @@
         submitButton: document.getElementById("submitButton"),
         resetButton: document.getElementById("resetButton"),
         status: document.getElementById("statusText"),
+        readinessNotice: document.getElementById("readinessNotice"),
+        readinessTitle: document.getElementById("readinessTitle"),
+        readinessCopy: document.getElementById("readinessCopy"),
+        setupFromNoticeButton: document.getElementById("setupFromNoticeButton"),
+        mockFromNoticeButton: document.getElementById("mockFromNoticeButton"),
         presetList: document.getElementById("presetList"),
         recentList: document.getElementById("recentList"),
         adminOutput: document.getElementById("adminOutput")
@@ -779,6 +832,24 @@
       function setStatus(message, kind = "") {
         els.status.textContent = message;
         els.status.className = `status ${kind}`.trim();
+      }
+
+      function setFormReady(isReady) {
+        els.submitButton.disabled = !isReady;
+      }
+
+      function showReadinessNotice(title, copy) {
+        els.readinessTitle.textContent = title;
+        els.readinessCopy.textContent = copy;
+        els.readinessNotice.classList.add("is-visible");
+      }
+
+      function hideReadinessNotice() {
+        els.readinessNotice.classList.remove("is-visible");
+      }
+
+      function isSetupMissingError(message) {
+        return state.mode === "real" && String(message || "").includes("Run setupWorkbook() first");
       }
 
       function getModeActions() {
@@ -1001,6 +1072,7 @@
 
       async function loadBootstrap() {
         setStatus(`Loading ${getModeActions().label.toLowerCase()} data...`);
+        setFormReady(false);
         try {
           const result = await gasCall(getModeActions().bootstrap);
           if (!result.ok) {
@@ -1013,10 +1085,49 @@
           renderReferenceData();
           renderPresets();
           renderRecent();
+          hideReadinessNotice();
           clearForm();
+          setFormReady(true);
         } catch (error) {
+          const message = error.message || String(error);
           els.sheetName.textContent = "Not connected";
-          setStatus(error.message || String(error), "error");
+          setStatus(message, "error");
+          setFormReady(false);
+          if (isSetupMissingError(message)) {
+            showReadinessNotice(
+              "Real workbook tabs are not set up yet",
+              "Mock mode is ready for testing. Set up the real workbook when you are ready to create the real app tabs."
+            );
+          }
+        }
+      }
+
+      async function runAdminAction(action) {
+        els.adminOutput.textContent =
+          action === "seedMockWorkbook" || action === "setupWorkbook" ? "Working..." : "Checking...";
+        try {
+          const result = await gasCall(action);
+          if (result === null || result === undefined) {
+            throw new Error(`${action} returned ${result}. The deployed Apps Script may be stale or the function returned a non-serializable value.`);
+          }
+          els.adminOutput.textContent = JSON.stringify(result, null, 2);
+          if (
+            (action === "setupWorkbook" && state.mode === "real") ||
+            ((action === "seedMockWorkbook" || action === "runMockQuickLogCheck") && state.mode === "mock")
+          ) {
+            loadBootstrap();
+          }
+          return result;
+        } catch (error) {
+          els.adminOutput.textContent = JSON.stringify(
+            {
+              ok: false,
+              message: error.message || String(error)
+            },
+            null,
+            2
+          );
+          return null;
         }
       }
 
@@ -1110,6 +1221,12 @@
       els.cancelEditButton.addEventListener("click", clearForm);
       els.refreshButton.addEventListener("click", loadBootstrap);
       els.recentRefreshButton.addEventListener("click", reloadRecent);
+      els.setupFromNoticeButton.addEventListener("click", () => {
+        runAdminAction("setupWorkbook");
+      });
+      els.mockFromNoticeButton.addEventListener("click", () => {
+        setMode("mock", true);
+      });
 
       els.presetList.addEventListener("click", (event) => {
         const button = event.target.closest("[data-preset-id]");
@@ -1145,31 +1262,7 @@
 
       document.querySelectorAll("[data-admin-action]").forEach((button) => {
         button.addEventListener("click", async () => {
-          const action = button.dataset.adminAction;
-          els.adminOutput.textContent =
-            action === "seedMockWorkbook" || action === "setupWorkbook" ? "Working..." : "Checking...";
-          try {
-            const result = await gasCall(action);
-            if (result === null || result === undefined) {
-              throw new Error(`${action} returned ${result}. The deployed Apps Script may be stale or the function returned a non-serializable value.`);
-            }
-            els.adminOutput.textContent = JSON.stringify(result, null, 2);
-            if (
-              (action === "setupWorkbook" && state.mode === "real") ||
-              ((action === "seedMockWorkbook" || action === "runMockQuickLogCheck") && state.mode === "mock")
-            ) {
-              loadBootstrap();
-            }
-          } catch (error) {
-            els.adminOutput.textContent = JSON.stringify(
-              {
-                ok: false,
-                message: error.message || String(error)
-              },
-              null,
-              2
-            );
-          }
+          runAdminAction(button.dataset.adminAction);
         });
       });
 

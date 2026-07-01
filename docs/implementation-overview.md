@@ -128,6 +128,10 @@ The selected workbook design is Approach 1:
   - mock create/edit/soft-delete all passed
   - deleted mock transaction was hidden from recent logs
   - real `Transactions` did not exist yet and therefore was not edited
+- Added real-mode readiness guidance:
+  - if real tabs are missing, the form is disabled
+  - the app shows a setup notice with `Setup real workbook` and `Use mock mode`
+  - the message makes it clear that mock mode is safe for testing before real setup
 - Kept workbook setup/mock/diagnostic controls in a secondary `Workbook tools` panel.
 - Added `PRODUCT.md` so future UI work has a stable product-register design context.
 
@@ -216,6 +220,7 @@ Implemented UI:
 - real/mock mode switch
 - mock-mode create/edit/delete against `Mock_Transactions`
 - one-click mock Quick Log smoke test
+- real workbook readiness notice
 
 Remaining Phase 3 polish:
 
