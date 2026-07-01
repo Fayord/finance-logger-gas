@@ -123,6 +123,11 @@ The selected workbook design is Approach 1:
   - mock mode writes only to `Mock_Transactions`
   - mock mode lets create/edit/delete be tested before real accounts and presets are configured
 - Added a `Run mock smoke test` workbook tool that seeds mock tabs, creates a mock transaction, edits it, soft-deletes it, and verifies the real `Transactions` row count did not change.
+- The owner ran the mock smoke test successfully in the Apps Script `/dev` deployment:
+  - `ok: true`
+  - mock create/edit/soft-delete all passed
+  - deleted mock transaction was hidden from recent logs
+  - real `Transactions` did not exist yet and therefore was not edited
 - Kept workbook setup/mock/diagnostic controls in a secondary `Workbook tools` panel.
 - Added `PRODUCT.md` so future UI work has a stable product-register design context.
 
@@ -214,8 +219,8 @@ Implemented UI:
 
 Remaining Phase 3 polish:
 
-- Browser-test the Apps Script `/dev` deployment on mobile and desktop widths.
-- Seed mock workbook, switch the UI to `Mock`, then test create/edit/delete without touching real tabs.
+- Manually test creating an expense, income, and transfer in `Mock` mode from the form.
+- Browser-test the Apps Script `/dev` deployment on desktop and mobile widths.
 - Improve empty states once real accounts/presets are configured.
 - Tighten account/category picker ergonomics after real config is available.
 - Add clearer loading skeletons if the GAS calls feel slow.
@@ -251,7 +256,7 @@ There is no hard engineering blocker right now.
 The main product dependency is review/approval:
 
 - Confirm the mock workbook shape is complete enough.
-- Confirm the mock Quick Log mode behaves correctly in the Apps Script web app.
+- Confirm manual mock Quick Log create/edit/delete feels good enough.
 - Confirm the real workbook tabs created by `setupWorkbook()` look acceptable.
 - Confirm that Approach 1 remains the chosen data model.
 
@@ -297,27 +302,22 @@ For real configuration later, I will need:
 
 Avoid sending sensitive tokens or OAuth credentials. Sheet IDs and Apps Script IDs should stay in local config or Script Properties unless you explicitly choose otherwise.
 
-## What You Need To Test Now
+## What You Need To Test Next
 
-If you want to review the current safe workbook pieces:
+The automated mock smoke test has passed. Next manual review steps:
 
-1. Open the Apps Script web app dev URL.
-2. Click `Check connection`.
-3. Click `Seed mock workbook`.
-4. Review only the `Mock_...` tabs in the Google Sheet.
-5. Click `Check mock workbook`.
-6. Switch the Quick Log page to `Mock`.
-7. Click `Run mock smoke test` for an automated mock create/edit/delete check.
-8. Create a sample expense, income, and transfer manually in `Mock` mode.
-9. Edit one mock recent log.
-10. Delete one mock recent log and confirm it is soft-deleted.
-11. Click `Setup real workbook` only when you are comfortable creating the real empty app tabs.
-12. Click `Check real workbook`.
+1. Review only the `Mock_...` tabs in the Google Sheet.
+2. In the web app, stay in `Mock` mode.
+3. Create a sample expense, income, and transfer manually.
+4. Edit one mock recent log.
+5. Delete one mock recent log and confirm it is soft-deleted.
+6. Click `Setup real workbook` only when you are comfortable creating the real empty app tabs.
+7. Click `Check real workbook`.
 
 The mock seeder and mock Quick Log mode should never modify non-mock tabs.
 
 ## Recommended Next Action
 
-Browser-test the Apps Script `/dev` deployment.
+Improve the web app's setup/readiness guidance.
 
-This is the best next step because the full Quick Log path can now be tested safely in `Mock` mode before you provide real accounts, presets, and settings.
+This is the best next step because the mock workflow works, but the real workbook tabs do not exist yet. The UI should make that state obvious and guide you toward `Setup real workbook` when you are ready.

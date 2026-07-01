@@ -223,6 +223,7 @@ function runMockQuickLogCheck() {
     }
 
     var realTransactions = spreadsheet.getSheetByName(FINANCE_SHEETS.TRANSACTIONS);
+    var realTransactionsSheetExists = Boolean(realTransactions);
     var realRowCountBefore = realTransactions ? realTransactions.getLastRow() : null;
     var seedResult = seedMockWorkbook();
 
@@ -266,10 +267,13 @@ function runMockQuickLogCheck() {
     return {
       ok: true,
       mode: "mock",
-      message: "Mock Quick Log smoke test passed. Real Transactions was not edited.",
+      message: realTransactionsSheetExists
+        ? "Mock Quick Log smoke test passed. Real Transactions was not edited."
+        : "Mock Quick Log smoke test passed. Real Transactions does not exist yet, so no real rows could be edited.",
       checkedAt: new Date().toISOString(),
       spreadsheet: getSpreadsheetSummary_(spreadsheet),
       transactionId: transactionId,
+      realTransactionsSheetExists: realTransactionsSheetExists,
       realTransactionsRowCountBefore: realRowCountBefore,
       realTransactionsRowCountAfter: realRowCountAfter,
       realTransactionsUntouched: realRowCountBefore === realRowCountAfter,

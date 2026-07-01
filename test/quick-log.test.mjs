@@ -699,6 +699,7 @@ test("runMockQuickLogCheck verifies mock create edit delete without changing rea
 
   assert.equal(result.ok, true);
   assert.equal(result.mode, "mock");
+  assert.equal(result.realTransactionsSheetExists, true);
   assert.equal(result.realTransactionsUntouched, true);
   assert.equal(result.realTransactionsRowCountBefore, 2);
   assert.equal(result.realTransactionsRowCountAfter, 2);
@@ -714,6 +715,21 @@ test("runMockQuickLogCheck verifies mock create edit delete without changing rea
     mockTransactions.values.some((row) => row[0] === result.transactionId),
     true
   );
+});
+
+test("runMockQuickLogCheck reports when real Transactions does not exist yet", () => {
+  const spreadsheet = new FakeSpreadsheet();
+  context.getFinanceSpreadsheet_ = () => spreadsheet;
+
+  const result = context.runMockQuickLogCheck();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, "mock");
+  assert.equal(result.realTransactionsSheetExists, false);
+  assert.equal(result.realTransactionsUntouched, true);
+  assert.equal(result.realTransactionsRowCountBefore, null);
+  assert.equal(result.realTransactionsRowCountAfter, null);
+  assert.match(result.message, /does not exist yet/);
 });
 
 test("runMockQuickLogSmokeTest remains a backwards-compatible alias", () => {
